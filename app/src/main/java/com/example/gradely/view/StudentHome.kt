@@ -1,12 +1,15 @@
 package com.example.gradely.view
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.FileCopy
@@ -14,25 +17,38 @@ import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HowToVote
 import androidx.compose.material.icons.filled.SupervisorAccount
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
+import androidx.navigation.NavController
+import com.example.gradely.ui.theme.Lexend
+import com.example.gradely.ui.theme.buttonDark
+import com.example.gradely.ui.theme.buttonLight
+import com.example.gradely.viewmodel.navigation.Screens
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudentHome() {
+fun StudentHome(
+    navController: NavController
+) {
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -64,21 +80,27 @@ fun StudentHome() {
                         icon = Icons.Default.HowToVote,
                         text = "Course Registration",
                         isSelected = false,
-                        onClick = {}
+                        onClick = {
+                            navController.navigate(Screens.StudentRegistration.route)
+                        }
                     )
                     AddHeight(8.dp)
                     SideBarItem(
                         icon = Icons.Default.SupervisorAccount,
                         text = "Attendance",
                         isSelected = false,
-                        onClick = {}
+                        onClick = {
+
+                        }
                     )
                     AddHeight(8.dp)
                     SideBarItem(
                         icon = Icons.Default.CheckCircleOutline,
                         text = "Marks",
                         isSelected = false,
-                        onClick = {}
+                        onClick = {
+                            navController.navigate(Screens.StudentMarks.route)
+                        }
                     )
                     AddHeight(8.dp)
                     SideBarItem(
@@ -104,7 +126,7 @@ fun StudentHome() {
                     AddHeight(8.dp)
                     SideBarItem(
                         icon = Icons.Default.FileOpen,
-                        text = "Course Withdraw",
+                        text = "Course Withdraw Request",
                         isSelected = false,
                         onClick = {}
                     )
@@ -135,6 +157,126 @@ fun StudentHome() {
                     .padding(values)
             ) {
 
+                val (info, scroll) = createRefs()
+
+                Row (
+                    modifier = Modifier.constrainAs(info) {
+                        top.linkTo(parent.top, margin = 50.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }.fillMaxWidth(fraction = 0.9f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Text("Student Profile", fontFamily = Lexend, fontSize = 20.sp)
+                }
+
+                LazyColumn (
+                    modifier = Modifier.constrainAs(scroll) {
+                        top.linkTo(info.bottom, margin = 30.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        width = Dimension.percent(0.9f)
+                        bottom.linkTo(parent.bottom, margin = 30.dp)
+                        height = Dimension.fillToConstraints
+                    },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
+                        ElevatedCard (
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = if (isSystemInDarkTheme()) buttonDark else buttonLight,
+                                contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 10.dp
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(20.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text("Email: ali@uni.com", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Degree: BS(CS)", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Batch: Fall 2022", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Status: Current", fontSize = 12.sp, fontFamily = Lexend)
+                            }
+                        }
+                        AddHeight(20.dp)
+                        ElevatedCard (
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = if (isSystemInDarkTheme()) buttonDark else buttonLight,
+                                contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 10.dp
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(20.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text("Name: Ali Jafar", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Gender: Male", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Personal Email: ali@gmail.com", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("DOB: 1/1/1999", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Mobile: 0333-9871234", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Blood-Group: B+", fontSize = 12.sp, fontFamily = Lexend)
+                            }
+                        }
+                        AddHeight(40.dp)
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Text("Academic Calendar", fontFamily = Lexend, fontSize = 20.sp)
+                        }
+                        AddHeight(20.dp)
+                        ElevatedCard (
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = if (isSystemInDarkTheme()) buttonDark else buttonLight,
+                                contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 10.dp
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(20.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text("Course Registration: 02/06/2025-05/06/2025", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Online Feedback: After the Result is Announced", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Classes: 10/06/2025-20/07/2025", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Online Withdraw Request: 06/06/2025-27/07/2025", fontSize = 12.sp, fontFamily = Lexend)
+                                AddHeight(6.dp)
+                                Text("Online Retake Request: After Exams", fontSize = 12.sp, fontFamily = Lexend)
+                            }
+                        }
+                        AddHeight(50.dp)
+                    }
+                }
             }
         }
     }

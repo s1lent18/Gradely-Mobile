@@ -8,7 +8,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gradely.view.Start
 import com.example.gradely.view.StudentHome
 import com.example.gradely.view.StudentLanding
+import com.example.gradely.view.StudentMarks
+import com.example.gradely.view.StudentRegistration
+import com.example.gradely.view.StudentTranscript
+import com.example.gradely.view.TeacherHome
 import com.example.gradely.view.TeacherLanding
+import com.example.gradely.view.TeacherMarks
 
 @Composable
 fun NavGraph(
@@ -33,7 +38,27 @@ fun NavGraph(
         }
 
         composable(Screens.StudentHome.route) {
-            StudentHome()
+            StudentHome(navController)
+        }
+
+        composable(Screens.TeacherHome.route) {
+            TeacherHome()
+        }
+
+        composable(Screens.StudentMarks.route) {
+            StudentMarks()
+        }
+
+        composable(Screens.TeacherMarks.route) {
+            TeacherMarks()
+        }
+
+        composable(Screens.StudentRegistration.route) {
+            StudentRegistration()
+        }
+
+        composable(Screens.StudentTranscript.route) {
+            StudentTranscript()
         }
     }
 }
