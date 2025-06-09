@@ -32,6 +32,7 @@ import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.button
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
+import com.example.gradely.viewmodel.navigation.Screens
 
 @Composable
 fun StudentLanding(
@@ -126,7 +127,7 @@ fun StudentLanding(
                         modifier = Modifier.fillMaxWidth(fraction = 0.9f).height(50.dp),
                         shape = RoundedCornerShape(20.dp),
                         onClick = {
-
+                            navController.navigate(Screens.StudentHome.route)
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = button,

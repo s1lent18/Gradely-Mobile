@@ -1,16 +1,30 @@
 package com.example.gradely.view
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -20,6 +34,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gradely.ui.theme.Lexend
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.gradely.ui.theme.button
+import com.example.gradely.ui.theme.lightButton
 
 @Composable
 fun AddWidth(space: Dp) {
@@ -70,5 +87,65 @@ fun Input(
             fontSize = 15.sp,
             fontFamily = Lexend
         )
+    )
+}
+
+@Composable
+fun SideBarItem(
+    icon: ImageVector,
+    text: String,
+    count: Int? = null,
+    isSelected: Boolean = false,
+    onClick: () -> Unit
+) {
+    val backgroundColor = if (isSelected) button else lightButton
+    val textColor = if (isSelected) button else Color.Black
+
+    Row(
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = textColor,
+                modifier = Modifier.size(15.dp)
+            )
+            AddWidth(5.dp)
+            Text(text = text, color = textColor, fontFamily = Lexend, fontSize = 12.sp)
+        }
+        count?.let {
+            Text(text = it.toString(), color = textColor)
+        }
+    }
+    AddHeight(10.dp)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Appbar(title: String, openDrawer: () -> Unit) {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    TopAppBar(
+        title = {
+            Text(text = title, style = TextStyle(color = Color.White, fontSize = 20.sp), fontFamily = Lexend)
+        },
+        navigationIcon = {
+            IconButton(onClick = {
+                openDrawer()
+            }) {
+                Icon(Icons.Default.Menu, contentDescription = "menu button", tint = Color.White)
+            }
+        },
+
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = button,
+            scrolledContainerColor = button
+        ),
+        scrollBehavior = scrollBehavior
     )
 }
