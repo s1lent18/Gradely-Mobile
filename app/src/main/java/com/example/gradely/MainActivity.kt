@@ -13,7 +13,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
-import com.example.gradely.model.UserPreferences
+import com.example.gradely.model.objects.UserPreferences
 import com.example.gradely.ui.theme.GradelyTheme
 import com.example.gradely.viewmodel.navigation.NavGraph
 import com.example.gradely.viewmodel.navigation.Screens

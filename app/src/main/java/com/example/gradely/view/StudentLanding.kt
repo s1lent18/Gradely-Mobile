@@ -1,7 +1,10 @@
 package com.example.gradely.view
 
+import android.widget.Toast
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,35 +17,68 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gradely.R
+import com.example.gradely.model.dataRequests.StudentLoginRequest
+import com.example.gradely.model.dataResponses.NetworkResponse
 import com.example.gradely.ui.theme.IBMPlex
 import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.button
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
-import com.example.gradely.viewmodel.navigation.Screens
+import com.example.gradely.viewmodel.viewmodels.StudentAuthViewModel
 
 @Composable
 fun StudentLanding(
-    navController: NavController
+    navController: NavController,
+    studentAuthViewModel: StudentAuthViewModel = hiltViewModel()
 ) {
     Surface {
 
         val (email, setEmail) = remember { mutableStateOf("") }
         val (password, setPassword) = remember { mutableStateOf("") }
         val color = if (isSystemInDarkTheme()) buttonDark else buttonLight
+        var passwordVisibility by remember { mutableStateOf(false) }
+        val context = LocalContext.current
+        val icon = if (passwordVisibility) painterResource(id = R.drawable.eye) else painterResource(id = R.drawable.lock)
+        var clicked by remember { mutableStateOf(false) }
+        val keyboardController = LocalSoftwareKeyboardController.current
+        val loginresult = studentAuthViewModel.loginResult.observeAsState()
+        var requestreceived by remember { mutableStateOf(false) }
+        var isLoading by remember { mutableStateOf(false) }
+
+        LaunchedEffect(clicked) {
+            val studentLoginRequest = StudentLoginRequest(
+                email = email,
+                password = password
+            )
+            studentAuthViewModel.studentLogin(studentLoginRequest = studentLoginRequest)
+            clicked = false
+            requestreceived = true
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -118,23 +154,75 @@ fun StudentLanding(
                         label = "password",
                         value = password,
                         onValueChange = setPassword,
-                        color = color
+                        color = color,
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    passwordVisibility = !passwordVisibility
+                                }
+                            ) {
+                                Icon(
+                                    painter = icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
+                        },
+                        visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                     )
 
                     AddHeight(40.dp)
 
-                    Button(
-                        modifier = Modifier.fillMaxWidth(fraction = 0.9f).height(50.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        onClick = {
-                            navController.navigate(Screens.StudentHome.route)
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = button,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text("Login", fontFamily = Lexend)
+                    if (!isLoading) {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(fraction = 0.9f).height(50.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            onClick = {
+                                if (email.isNotEmpty() && password.isNotEmpty()) {
+                                    clicked = true
+                                    keyboardController?.hide()
+                                }
+                                else if (email.isEmpty()) {
+                                    Toast.makeText(context, "Enter Email", Toast.LENGTH_SHORT).show()
+                                }
+                                else if (password.isEmpty()) {
+                                    Toast.makeText(context, "Enter password", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = button,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("Login", fontFamily = Lexend)
+                        }
+                    }
+                    else {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(fraction = 0.9f).height(50.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                        }
+                    }
+
+                    if (email.isNotEmpty() && password.isNotEmpty() && requestreceived) {
+                        when (val result = loginresult.value) {
+                            is NetworkResponse.Failure -> {
+                                isLoading = false
+                                Toast.makeText(context, "Incorrect Credentials", Toast.LENGTH_LONG).show()
+                                requestreceived = false
+                            }
+
+                            NetworkResponse.Loading -> { isLoading = true }
+                            is NetworkResponse.Success<*> -> {
+                                isLoading = false
+                                LaunchedEffect(Unit) {
+
+                                }
+                            }
+                            null -> {}
+                        }
                     }
                 }
             }
