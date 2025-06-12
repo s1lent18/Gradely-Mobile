@@ -229,7 +229,8 @@ fun StudentLanding(
                                         personalEmail = result.data.studentData.personalEmail,
                                         phone = result.data.studentData.phone,
                                         studentName = result.data.studentData.studentName,
-                                        timeStamp = System.currentTimeMillis().toString()
+                                        timeStamp = System.currentTimeMillis().toString(),
+                                        status = result.data.studentData.status
                                     )
                                     Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                                     delay(2000)

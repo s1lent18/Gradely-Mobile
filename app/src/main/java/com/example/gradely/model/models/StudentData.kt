@@ -15,5 +15,6 @@ data class StudentData(
     val semesters: List<Semester>,
     val studentId: String,
     val studentName: String,
-    val token: String
+    val token: String,
+    val status: String
 )

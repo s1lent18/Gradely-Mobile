@@ -139,9 +139,23 @@ class UserPrefImpl (private val dataStore: DataStore<Preferences>) : UserPref {
         }
     }
 
+    override fun getStatus(): Flow<String> {
+        return dataStore.data.catch {
+            emit(emptyPreferences())
+        }.map {
+            it[STATUS_KEY]?: ""
+        }
+    }
+
     override suspend fun saveUserRole(role: String) {
         dataStore.edit {
             it[USER_ROLE_KEY] = role
+        }
+    }
+
+    override suspend fun saveStatus(status: String) {
+        dataStore.edit {
+            it[STATUS_KEY] = status
         }
     }
 

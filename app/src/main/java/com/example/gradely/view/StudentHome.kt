@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,19 +38,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
 import com.example.gradely.viewmodel.navigation.Screens
+import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentHome(
-    navController: NavController
+    navController: NavController,
+    studentTokenViewModel: StudentTokenViewModel = hiltViewModel()
 ) {
 
+    val studentName = studentTokenViewModel.studentName.collectAsState().value
+    val assignedEmail = studentTokenViewModel.assignedEmail.collectAsState().value
+    val gender = studentTokenViewModel.gender.collectAsState().value
+    val personalEmail = studentTokenViewModel.personalEmail.collectAsState().value
+    val phone = studentTokenViewModel.phone.collectAsState().value
+    val dob = studentTokenViewModel.dob.collectAsState().value
+    val bloodGroup = studentTokenViewModel.bloodGroup.collectAsState().value
+    val degree = studentTokenViewModel.degree.collectAsState().value
+    val batch = studentTokenViewModel.batch.collectAsState().value
+    val status = studentTokenViewModel.status.collectAsState().value
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
@@ -199,13 +213,13 @@ fun StudentHome(
                                 modifier = Modifier.fillMaxSize().padding(20.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
-                                Text("Email: ali@uni.com", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Email: $assignedEmail", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Degree: BS(CS)", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Degree: $degree", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Batch: Fall 2022", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Batch: Fall $batch", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Status: Current", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Status: $status", fontSize = 12.sp, fontFamily = Lexend)
                             }
                         }
                         AddHeight(20.dp)
@@ -225,17 +239,17 @@ fun StudentHome(
                                 modifier = Modifier.fillMaxSize().padding(20.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
-                                Text("Name: Ali Jafar", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Name: $studentName", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Gender: Male", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Gender: $gender", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Personal Email: ali@gmail.com", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Personal Email: $personalEmail", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("DOB: 1/1/1999", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("DOB: $dob", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Mobile: 0333-9871234", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Mobile: $phone", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Blood-Group: B+", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Blood-Group: $bloodGroup", fontSize = 12.sp, fontFamily = Lexend)
                             }
                         }
                         AddHeight(40.dp)

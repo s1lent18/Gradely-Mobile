@@ -1,8 +1,8 @@
 package com.example.gradely.view
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.sp
 import com.example.gradely.ui.theme.Lexend
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.gradely.ui.theme.button
-import com.example.gradely.ui.theme.lightButton
 
 @Composable
 fun AddWidth(space: Dp) {
@@ -98,8 +97,7 @@ fun SideBarItem(
     isSelected: Boolean = false,
     onClick: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) button else lightButton
-    val textColor = if (isSelected) button else Color.Black
+    val textColor = if (isSelected) button else if (isSystemInDarkTheme()) Color.White else Color.Black
 
     Row(
         modifier = Modifier

@@ -128,6 +128,12 @@ class StudentTokenViewModel @Inject constructor(
         initialValue = ""
     )
 
+    val status = userPref.getStatus().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = ""
+    )
+
     init {
         startAutoLogoutTimer()
     }
@@ -222,6 +228,12 @@ class StudentTokenViewModel @Inject constructor(
         }
     }
 
+    fun saveStatus(status: String) {
+        viewModelScope.launch {
+            userPref.saveStatus(status)
+        }
+    }
+
     fun logout() {
         viewModelScope.launch {
             userPref.saveDOB("")
@@ -239,6 +251,7 @@ class StudentTokenViewModel @Inject constructor(
             userPref.saveBloodGroup("")
             userPref.saveAddress("")
             userPref.saveTimeStamp("")
+            userPref.saveStatus("")
         }
     }
 
@@ -257,7 +270,8 @@ class StudentTokenViewModel @Inject constructor(
         personalEmail: String,
         assignedEmail: String,
         address: String,
-        timeStamp: String
+        timeStamp: String,
+        status: String
     ) {
         saveAddress(address)
         saveEmergency(emergency)
@@ -274,6 +288,7 @@ class StudentTokenViewModel @Inject constructor(
         saveDOB(dob)
         saveFatherName(fatherName)
         saveTimeStamp(timeStamp)
+        saveStatus(status)
     }
 
     private fun startAutoLogoutTimer() {
