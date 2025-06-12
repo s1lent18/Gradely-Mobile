@@ -27,8 +27,8 @@ import androidx.navigation.NavController
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,12 +49,16 @@ import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.button
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
+import com.example.gradely.viewmodel.navigation.Screens
 import com.example.gradely.viewmodel.viewmodels.StudentAuthViewModel
+import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun StudentLanding(
     navController: NavController,
-    studentAuthViewModel: StudentAuthViewModel = hiltViewModel()
+    studentAuthViewModel: StudentAuthViewModel = hiltViewModel(),
+    studentTokenViewModel: StudentTokenViewModel = hiltViewModel()
 ) {
     Surface {
 
@@ -64,21 +68,10 @@ fun StudentLanding(
         var passwordVisibility by remember { mutableStateOf(false) }
         val context = LocalContext.current
         val icon = if (passwordVisibility) painterResource(id = R.drawable.eye) else painterResource(id = R.drawable.lock)
-        var clicked by remember { mutableStateOf(false) }
         val keyboardController = LocalSoftwareKeyboardController.current
-        val loginresult = studentAuthViewModel.loginResult.observeAsState()
+        val loginResult = studentAuthViewModel.loginResult.collectAsState()
         var requestreceived by remember { mutableStateOf(false) }
         var isLoading by remember { mutableStateOf(false) }
-
-        LaunchedEffect(clicked) {
-            val studentLoginRequest = StudentLoginRequest(
-                email = email,
-                password = password
-            )
-            studentAuthViewModel.studentLogin(studentLoginRequest = studentLoginRequest)
-            clicked = false
-            requestreceived = true
-        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -179,8 +172,11 @@ fun StudentLanding(
                             shape = RoundedCornerShape(20.dp),
                             onClick = {
                                 if (email.isNotEmpty() && password.isNotEmpty()) {
-                                    clicked = true
                                     keyboardController?.hide()
+                                    isLoading = true
+                                    requestreceived = true
+                                    val studentLoginRequest = StudentLoginRequest(email = email, password = password)
+                                    studentAuthViewModel.studentLogin(studentLoginRequest)
                                 }
                                 else if (email.isEmpty()) {
                                     Toast.makeText(context, "Enter Email", Toast.LENGTH_SHORT).show()
@@ -207,7 +203,7 @@ fun StudentLanding(
                     }
 
                     if (email.isNotEmpty() && password.isNotEmpty() && requestreceived) {
-                        when (val result = loginresult.value) {
+                        when (val result = loginResult.value) {
                             is NetworkResponse.Failure -> {
                                 isLoading = false
                                 Toast.makeText(context, "Incorrect Credentials", Toast.LENGTH_LONG).show()
@@ -215,10 +211,29 @@ fun StudentLanding(
                             }
 
                             NetworkResponse.Loading -> { isLoading = true }
-                            is NetworkResponse.Success<*> -> {
+                            is NetworkResponse.Success -> {
                                 isLoading = false
                                 LaunchedEffect(Unit) {
-
+                                    studentTokenViewModel.saveUserData(
+                                        token = result.data.studentData.token,
+                                        dob = result.data.studentData.dob,
+                                        studentId = result.data.studentData.studentId,
+                                        address = result.data.studentData.address,
+                                        assignedEmail = result.data.studentData.assignedEmail,
+                                        batch = result.data.studentData.batch,
+                                        bloodGroup = result.data.studentData.bloodGroup,
+                                        degree = result.data.studentData.degree,
+                                        emergency = result.data.studentData.emergency,
+                                        fatherName = result.data.studentData.fatherName,
+                                        gender = result.data.studentData.gender,
+                                        personalEmail = result.data.studentData.personalEmail,
+                                        phone = result.data.studentData.phone,
+                                        studentName = result.data.studentData.studentName,
+                                        timeStamp = System.currentTimeMillis().toString()
+                                    )
+                                    Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
+                                    delay(2000)
+                                    navController.navigate(route = Screens.StudentHome.route)
                                 }
                             }
                             null -> {}

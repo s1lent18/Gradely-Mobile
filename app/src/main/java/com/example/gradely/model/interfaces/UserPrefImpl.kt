@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import com.example.gradely.model.objects.UserPreferences.USER_ROLE_KEY
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -119,6 +120,34 @@ class UserPrefImpl (private val dataStore: DataStore<Preferences>) : UserPref {
             emit(emptyPreferences())
         }.map {
             it[TOKEN_KEY]?: ""
+        }
+    }
+
+    override fun getTimeStamp(): Flow<String> {
+        return dataStore.data.catch {
+            emit(emptyPreferences())
+        }.map {
+            it[TIMESTAMP_KEY]?: ""
+        }
+    }
+
+    override fun getUserRole(): Flow<String> {
+        return dataStore.data.catch {
+            emit(emptyPreferences())
+        }.map {
+            it[USER_ROLE_KEY]?: ""
+        }
+    }
+
+    override suspend fun saveUserRole(role: String) {
+        dataStore.edit {
+            it[USER_ROLE_KEY] = role
+        }
+    }
+
+    override suspend fun saveTimeStamp(timestamp: String) {
+        dataStore.edit {
+            it[TIMESTAMP_KEY] = timestamp
         }
     }
 

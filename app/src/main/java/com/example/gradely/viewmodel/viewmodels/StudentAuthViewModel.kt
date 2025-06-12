@@ -1,7 +1,5 @@
 package com.example.gradely.viewmodel.viewmodels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gradely.model.dataRequests.StudentLoginRequest
@@ -9,6 +7,8 @@ import com.example.gradely.model.dataResponses.NetworkResponse
 import com.example.gradely.model.interfaces.StudentLoginApi
 import com.example.gradely.model.models.StudentLoginResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,8 +17,9 @@ class StudentAuthViewModel @Inject constructor(
     private val studentLoginApi: StudentLoginApi
 ) : ViewModel() {
 
-    private val _loginResult = MutableLiveData<NetworkResponse<StudentLoginResponse>>()
-    val loginResult: LiveData<NetworkResponse<StudentLoginResponse>> = _loginResult
+    private val _loginResult = MutableStateFlow<NetworkResponse<StudentLoginResponse>?>(null)
+    val loginResult: StateFlow<NetworkResponse<StudentLoginResponse>?> = _loginResult
+
 
     fun studentLogin(studentLoginRequest: StudentLoginRequest) {
 
@@ -27,7 +28,6 @@ class StudentAuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = studentLoginApi.loginStudent(studentLoginRequest = studentLoginRequest)
-
                 if (response.isSuccessful && response.code() == 200) {
                     response.body()?.let {
                         _loginResult.value = NetworkResponse.Success(it)

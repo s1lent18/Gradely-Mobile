@@ -17,6 +17,7 @@ val DEGREE_KEY = stringPreferencesKey("degree")
 val GENDER_KEY = stringPreferencesKey("gender")
 val DOB_KEY = stringPreferencesKey("dob")
 val TOKEN_KEY = stringPreferencesKey("token")
+val TIMESTAMP_KEY = stringPreferencesKey("timestamp")
 
 interface UserPref {
 
@@ -34,7 +35,10 @@ interface UserPref {
     fun getDegree(): Flow<String>
     fun getGender(): Flow<String>
     fun getDOB(): Flow<String>
+    fun getTimeStamp(): Flow<String>
+    fun getUserRole(): Flow<String>
 
+    suspend fun saveUserRole(role: String)
     suspend fun saveToken(token: String)
     suspend fun saveStudentId(studentId: String)
     suspend fun saveStudentName(studentName: String)
@@ -49,4 +53,5 @@ interface UserPref {
     suspend fun saveDegree(degree: String)
     suspend fun saveGender(gender: String)
     suspend fun saveDOB(dob: String)
+    suspend fun saveTimeStamp(timestamp: String)
 }
