@@ -35,6 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gradely.ui.theme.Lexend
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import com.example.gradely.ui.theme.button
 
 @Composable
@@ -146,4 +150,34 @@ fun Appbar(title: String, openDrawer: () -> Unit) {
         ),
         scrollBehavior = scrollBehavior
     )
+}
+
+@Composable
+fun TextModify(bold: String, normal: String, space: Int = 6) {
+    Text(
+        buildAnnotatedString {
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(bold)
+            }
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Normal)) {
+                append(normal)
+            }
+        },
+        fontSize = 12.sp,
+        fontFamily = Lexend
+    )
+    AddHeight(space.dp)
+}
+
+fun getCurrentSemesterInfo(): Pair<String, String> {
+    val now = java.time.LocalDate.now()
+    val month = now.month
+    val year = now.year
+
+    return when (month) {
+        java.time.Month.JUNE -> "Summer $year" to "2"
+        java.time.Month.JANUARY -> "Spring $year" to "6"
+        java.time.Month.AUGUST -> "Fall $year" to "6"
+        else -> "Unknown Semester" to "0" // fallback for other months
+    }
 }

@@ -54,7 +54,9 @@ fun NavGraph(
         }
 
         composable(Screens.StudentRegistration.route) {
-            StudentRegistration()
+            StudentRegistration(
+                navController
+            )
         }
 
         composable(Screens.StudentTranscript.route) {
