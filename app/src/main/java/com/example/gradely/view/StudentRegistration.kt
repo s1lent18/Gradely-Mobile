@@ -1,13 +1,19 @@
 package com.example.gradely.view
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
@@ -16,10 +22,16 @@ import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HowToVote
 import androidx.compose.material.icons.filled.SupervisorAccount
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -27,16 +39,23 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.example.gradely.ui.theme.Lexend
+import com.example.gradely.ui.theme.button
 import com.example.gradely.viewmodel.navigation.Screens
 import kotlinx.coroutines.launch
 
@@ -50,6 +69,10 @@ fun StudentRegistration(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
+    val expandedStates = remember { mutableStateListOf<Boolean>().apply { repeat(5) { add(false) } } }
+    val sections = remember { mutableStateListOf<String>().apply { repeat(5) { add("") } } }
+    val registration = remember { mutableStateListOf<Boolean>().apply { repeat(5) { add(false) } } }
+    //var section by remember { mutableStateOf("") }
     val (semester, courseLimit) = getCurrentSemesterInfo()
 
     ModalNavigationDrawer(
@@ -155,59 +178,148 @@ fun StudentRegistration(
                     .padding(values)
             ) {
 
-                val (scroll) = createRefs()
+                val (bar, scroll) = createRefs()
 
-                LazyColumn (
-                    modifier = Modifier.constrainAs(scroll) {
+                ElevatedCard(
+                    modifier = Modifier.constrainAs(bar) {
                         top.linkTo(parent.top, margin = 30.dp)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         width = Dimension.percent(0.9f)
-                        bottom.linkTo(parent.bottom, margin = 30.dp)
-                        height = Dimension.fillToConstraints
-                    }
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(
+                        10.dp
+                    )
                 ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(15.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        TextModify("Program: ", "BS(CS)")
+                        TextModify("Credits Attempted: ", "100")
+                        TextModify("Warning Count: ", "0")
+                        TextModify("Name: ", "John Doe")
+                        TextModify("Batch: ", "Fall 2022")
+                        TextModify("Credits Earned: ", "100")
+                        TextModify("Semester: ", semester)
+                        TextModify("Registered Credits: ", "0")
+                        TextModify("Status: ", "Current")
+                        TextModify("CGPA: ", "3.03")
+                        TextModify("Course Limit for Semester: ", courseLimit)
+                    }
+                }
 
+                LazyColumn (
+                    modifier = Modifier
+                        .horizontalScroll(rememberScrollState())
+                        .constrainAs(scroll) {
+                            top.linkTo(bar.bottom, margin = 30.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            width = Dimension.percent(0.9f)
+                            bottom.linkTo(parent.bottom, margin = 30.dp)
+                            height = Dimension.fillToConstraints
+                        }
+                ) {
                     item {
-                        ElevatedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = CardDefaults.cardElevation(
-                                10.dp
-                            )
+                        AddHeight(30.dp)
+                    }
+
+                    items(5) { index ->
+
+                        val isExpanded = expandedStates[index]
+                        var section = sections[index]
+                        var register = registration[index]
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(20.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(15.dp),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.Start
+                            Text(
+                                "${index + 1}",
+                                fontFamily = Lexend,
+                                fontSize = 12.sp,
+                                //modifier = Modifier.weight(0.1f)
+                            )
+                            Box (
+                                modifier = Modifier.width(80.dp).height(50.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                TextModify("Program: ", "BS(CS)")
-                                TextModify("Credits Attempted: ", "100")
-                                TextModify("Warning Count: ", "0")
-                                TextModify("Name: ", "John Doe")
-                                TextModify("Batch: ", "Fall 2022")
-                                TextModify("Credits Earned: ", "100")
-                                TextModify("Semester: ", semester)
-                                TextModify("Registered Credits: ", "0")
-                                TextModify("Status: ", "Current")
-                                TextModify("CGPA: ", "3.03")
-                                TextModify("Course Limit for Semester: ", courseLimit)
+                                Text(
+                                    text = "Deep Learning for Perception",
+                                    fontFamily = Lexend,
+                                    fontSize = 12.sp,
+                                    maxLines = 4,
+                                    overflow = TextOverflow.Ellipsis,
+                                    //modifier = Modifier.weight(0.3f)
+                                )
+                            }
+                            Text(
+                                "Elective",
+                                fontFamily = Lexend,
+                                fontSize = 12.sp,
+                                //modifier = Modifier.weight(0.2f)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    //.weight(0.3f)
+                                    .width(110.dp)
+                                    .height(45.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                ExposedDropdownMenuBox(
+                                    expanded = isExpanded,
+                                    onExpandedChange = { expandedStates[index] = !isExpanded }
+                                ) {
+                                    TextField(
+                                        value = section,
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) },
+                                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                        modifier = Modifier.menuAnchor(),
+                                        textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp)
+                                    )
+
+                                    ExposedDropdownMenu(
+                                        expanded = isExpanded,
+                                        onDismissRequest = { expandedStates[index] = false }
+                                    ) {
+                                        listOf("BS(CS)-1A", "BS(CS)-1B", "BS(CS)-1C").forEach { sec ->
+                                            DropdownMenuItem(
+                                                text = { Text(sec, fontSize = 10.sp, fontFamily = Lexend) },
+                                                onClick = {
+                                                    sections[index] = sec
+                                                    expandedStates[index] = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            ElevatedButton(
+                                onClick = {
+                                    registration[index] = !register
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = button,
+                                    contentColor = Color.White
+                                ),
+                                //modifier = Modifier.weight(0.2f),
+                                elevation = ButtonDefaults.buttonElevation(10.dp)
+                            ) {
+                                Text( if(!registration[index]) "Register" else "Drop", fontSize = 10.sp, fontFamily = Lexend)
                             }
                         }
-                    }
-
-                    items(5) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Text("1", fontFamily = Lexend, fontSize = 12.sp)
-                            Text("Deep Learning for Perception", fontFamily = Lexend, fontSize = 12.sp)
-                            Text("Elective", fontFamily = Lexend, fontSize = 12.sp)
-                        }
+                        AddHeight(10.dp)
+                        HorizontalDivider(color = Color.Gray)
+                        AddHeight(10.dp)
                     }
                 }
             }
