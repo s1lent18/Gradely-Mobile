@@ -54,16 +54,7 @@ fun StudentHome(
     studentTokenViewModel: StudentTokenViewModel = hiltViewModel()
 ) {
 
-    val studentName = studentTokenViewModel.studentName.collectAsState().value
-    val assignedEmail = studentTokenViewModel.assignedEmail.collectAsState().value
-    val gender = studentTokenViewModel.gender.collectAsState().value
-    val personalEmail = studentTokenViewModel.personalEmail.collectAsState().value
-    val phone = studentTokenViewModel.phone.collectAsState().value
-    val dob = studentTokenViewModel.dob.collectAsState().value
-    val bloodGroup = studentTokenViewModel.bloodGroup.collectAsState().value
-    val degree = studentTokenViewModel.degree.collectAsState().value
-    val batch = studentTokenViewModel.batch.collectAsState().value
-    val status = studentTokenViewModel.status.collectAsState().value
+    val studentData = studentTokenViewModel.studentData.collectAsState().value
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
@@ -213,13 +204,13 @@ fun StudentHome(
                                 modifier = Modifier.fillMaxSize().padding(20.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
-                                Text("Email: $assignedEmail", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Email: ${studentData?.assignedEmail}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Degree: $degree", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Degree: ${studentData?.degree}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Batch: Fall $batch", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Batch: Fall ${studentData?.batch}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Status: $status", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Status: ${studentData?.status}", fontSize = 12.sp, fontFamily = Lexend)
                             }
                         }
                         AddHeight(20.dp)
@@ -239,17 +230,17 @@ fun StudentHome(
                                 modifier = Modifier.fillMaxSize().padding(20.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
-                                Text("Name: $studentName", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Name: ${studentData?.studentName}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Gender: $gender", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Gender: ${studentData?.gender}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Personal Email: $personalEmail", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Personal Email: ${studentData?.personalEmail}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("DOB: $dob", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("DOB: ${studentData?.dob}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Mobile: $phone", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Mobile: ${studentData?.phone}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Blood-Group: $bloodGroup", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Blood-Group: ${studentData?.bloodGroup}", fontSize = 12.sp, fontFamily = Lexend)
                             }
                         }
                         AddHeight(40.dp)

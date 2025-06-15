@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -43,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -53,19 +53,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.button
 import com.example.gradely.viewmodel.navigation.Screens
+import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentRegistration(
-    navController: NavController
+    navController: NavController,
+    studentTokenViewModel: StudentTokenViewModel = hiltViewModel()
 ) {
-
+    val studentData = studentTokenViewModel.studentData.collectAsState().value
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
@@ -198,16 +201,16 @@ fun StudentRegistration(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.Start
                     ) {
-                        TextModify("Program: ", "BS(CS)")
-                        TextModify("Credits Attempted: ", "100")
-                        TextModify("Warning Count: ", "0")
-                        TextModify("Name: ", "John Doe")
-                        TextModify("Batch: ", "Fall 2022")
-                        TextModify("Credits Earned: ", "100")
+                        TextModify("Program: ", "${studentData?.degree}")
+                        TextModify("Credits Attempted: ", "${studentData?.creditsAttempted}")
+                        TextModify("Warning Count: ", "${studentData?.warningCount}")
+                        TextModify("Name: ", "${studentData?.studentName}")
+                        TextModify("Batch: ", "Fall ${studentData?.batch}")
+                        TextModify("Credits Earned: ", "${studentData?.creditsEarned}")
                         TextModify("Semester: ", semester)
                         TextModify("Registered Credits: ", "0")
-                        TextModify("Status: ", "Current")
-                        TextModify("CGPA: ", "3.03")
+                        TextModify("Status: ", "${studentData?.creditsEarned}")
+                        TextModify("CGPA: ", "${studentData?.cgpa}")
                         TextModify("Course Limit for Semester: ", courseLimit)
                     }
                 }

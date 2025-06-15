@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,7 +55,7 @@ class SplashScreen : ComponentActivity() {
         var isSplashComplete by remember { mutableStateOf(false) }
         var userRole by remember { mutableStateOf<String?>(null) }
         val studentTokenViewModel = hiltViewModel<StudentTokenViewModel>()
-        val token by studentTokenViewModel.token.collectAsStateWithLifecycle()
+        val studentData by studentTokenViewModel.studentData.collectAsStateWithLifecycle()
         val sessionStatus by studentTokenViewModel.session.collectAsStateWithLifecycle()
         val text = "Gradely"
         var displayedText by remember { mutableStateOf("") }
@@ -81,7 +80,7 @@ class SplashScreen : ComponentActivity() {
         LaunchedEffect(isSplashComplete, !sessionStatus, userRole) {
             if (isSplashComplete && !sessionStatus && userRole != null) {
                 val startDestination = when {
-                    token.isNotEmpty() -> {
+                    studentData?.token!!.isNotEmpty() -> {
                         if (userRole == "Student") Screens.StudentHome.route else Screens.TeacherHome.route
                     }
 

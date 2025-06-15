@@ -215,22 +215,8 @@ fun StudentLanding(
                                 isLoading = false
                                 LaunchedEffect(Unit) {
                                     studentTokenViewModel.saveUserData(
-                                        token = result.data.studentData.token,
-                                        dob = result.data.studentData.dob,
-                                        studentId = result.data.studentData.studentId,
-                                        address = result.data.studentData.address,
-                                        assignedEmail = result.data.studentData.assignedEmail,
-                                        batch = result.data.studentData.batch,
-                                        bloodGroup = result.data.studentData.bloodGroup,
-                                        degree = result.data.studentData.degree,
-                                        emergency = result.data.studentData.emergency,
-                                        fatherName = result.data.studentData.fatherName,
-                                        gender = result.data.studentData.gender,
-                                        personalEmail = result.data.studentData.personalEmail,
-                                        phone = result.data.studentData.phone,
-                                        studentName = result.data.studentData.studentName,
+                                        studentData = result.data.studentData,
                                         timeStamp = System.currentTimeMillis().toString(),
-                                        status = result.data.studentData.status
                                     )
                                     Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                                     delay(2000)
