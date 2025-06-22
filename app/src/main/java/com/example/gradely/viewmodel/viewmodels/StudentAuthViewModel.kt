@@ -20,7 +20,6 @@ class StudentAuthViewModel @Inject constructor(
     private val _loginResult = MutableStateFlow<NetworkResponse<StudentLoginResponse>?>(null)
     val loginResult: StateFlow<NetworkResponse<StudentLoginResponse>?> = _loginResult
 
-
     fun studentLogin(studentLoginRequest: StudentLoginRequest) {
 
         _loginResult.value = NetworkResponse.Loading
@@ -39,6 +38,5 @@ class StudentAuthViewModel @Inject constructor(
                 _loginResult.value = NetworkResponse.Failure("$e")
             }
         }
-
     }
 }

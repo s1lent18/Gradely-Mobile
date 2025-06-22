@@ -44,6 +44,7 @@ import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
 import com.example.gradely.viewmodel.navigation.Screens
+import com.example.gradely.viewmodel.viewmodels.StudentRegistrationsViewModel
 import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
 
@@ -51,7 +52,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun StudentHome(
     navController: NavController,
-    studentTokenViewModel: StudentTokenViewModel = hiltViewModel()
+    studentTokenViewModel: StudentTokenViewModel = hiltViewModel(),
+    studentRegistrationsViewModel: StudentRegistrationsViewModel = hiltViewModel()
 ) {
 
     val studentData = studentTokenViewModel.studentData.collectAsState().value
@@ -86,6 +88,7 @@ fun StudentHome(
                         text = "Course Registration",
                         isSelected = false,
                         onClick = {
+                            studentRegistrationsViewModel.getRegistration(studentId = studentData?.studentId!!)
                             navController.navigate(Screens.StudentRegistration.route)
                         }
                     )
