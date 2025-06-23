@@ -1,10 +1,13 @@
 package com.example.gradely.viewmodel.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.gradely.model.objects.UserPreferences
 import com.example.gradely.view.Start
 import com.example.gradely.view.StudentHome
 import com.example.gradely.view.StudentLanding
@@ -14,19 +17,32 @@ import com.example.gradely.view.StudentTranscript
 import com.example.gradely.view.TeacherHome
 import com.example.gradely.view.TeacherLanding
 import com.example.gradely.view.TeacherMarks
+import kotlinx.coroutines.launch
 
 @Composable
 fun NavGraph(
     navController: NavHostController = rememberNavController(),
-    startDestination: String,
-    onRoleSelected: (String) -> Unit
+    startDestination: String
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     NavHost(
         navController = navController,
         startDestination = startDestination
     ) {
         composable(Screens.Start.route) {
-            Start(onRoleSelected = onRoleSelected)
+            Start { selectedRole ->
+                scope.launch {
+                    UserPreferences.saveUserRole(context, selectedRole)
+                }
+                navController.navigate(
+                    if (selectedRole == "Student") Screens.StudentLanding.route
+                    else Screens.TeacherLanding.route
+                ) {
+                    popUpTo(Screens.Start.route) { inclusive = true }
+                }
+            }
         }
 
         composable(Screens.StudentLanding.route) {
@@ -34,7 +50,7 @@ fun NavGraph(
         }
 
         composable(Screens.TeacherLanding.route) {
-            TeacherLanding()
+            TeacherLanding(navController = navController)
         }
 
         composable(Screens.StudentHome.route) {

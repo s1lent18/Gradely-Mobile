@@ -1,5 +1,8 @@
 package com.example.gradely.model.models
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class TeacherData(
     val address: String,
     val assignedEmail: String,

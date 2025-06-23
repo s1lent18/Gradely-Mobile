@@ -30,11 +30,11 @@ class MainActivity : ComponentActivity() {
                 NavGraph(
                     navController = navController,
                     startDestination = startDestination,
-                    onRoleSelected = { role ->
-                        lifecycleScope.launch {
-                            UserPreferences.saveUserRole(applicationContext, role)
-                        }
-                    }
+//                    onRoleSelected = { role ->
+//                        lifecycleScope.launch {
+//                            UserPreferences.saveUserRole(applicationContext, role)
+//                        }
+//                    }
                 )
             }
         }

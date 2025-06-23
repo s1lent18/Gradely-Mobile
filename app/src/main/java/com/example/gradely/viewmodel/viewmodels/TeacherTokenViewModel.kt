@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.gradely.model.interfaces.UserPref
 import com.example.gradely.model.models.StudentData
 import com.example.gradely.model.models.TeacherData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+@HiltViewModel
 class TeacherTokenViewModel @Inject constructor(
     private val userPref: UserPref
 ) : ViewModel() {

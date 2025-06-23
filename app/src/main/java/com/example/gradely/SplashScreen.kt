@@ -29,7 +29,9 @@ import com.example.gradely.viewmodel.navigation.Screens
 import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import com.example.gradely.viewmodel.viewmodels.TeacherTokenViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 
 @SuppressLint("CustomSplashScreen")
 @AndroidEntryPoint
@@ -64,9 +66,15 @@ class SplashScreen : ComponentActivity() {
         var displayedText by remember { mutableStateOf("") }
 
         LaunchedEffect(Unit) {
-            UserPreferences.getUserRole(context).collect {
-                userRole = it
+            withTimeoutOrNull(3000) {
+                UserPreferences.getUserRole(context).collect {
+                    if (!it.isNullOrBlank()) {
+                        userRole = it
+                        cancel()
+                    }
+                }
             }
+            if (userRole == null) userRole = "UNKNOWN"
         }
 
         LaunchedEffect (Unit) {
