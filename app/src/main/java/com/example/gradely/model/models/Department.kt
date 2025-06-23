@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Department(
-    val deptId: String,
-    val deptName: String
+    val deptId: String = "",
+    val deptName: String = ""
 )

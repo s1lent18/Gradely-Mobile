@@ -6,6 +6,8 @@ import kotlinx.serialization.Serializable
 data class CourseX(
     val bestRatedComment: String,
     val id: String,
+    val name: String,
     val rating: Double,
-    val worstRatedComment: String
+    val worstRatedComment: String,
+    val numberOfStudents: Int
 )

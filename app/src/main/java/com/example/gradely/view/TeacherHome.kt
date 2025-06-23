@@ -42,13 +42,14 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeacherHome(
     navController: NavController,
-    teacherTokenViewModel: TeacherTokenViewModel
+    teacherTokenViewModel: TeacherTokenViewModel = hiltViewModel()
 ) {
 
     val teacherData = teacherTokenViewModel.teacherData.collectAsState().value
@@ -180,7 +181,7 @@ fun TeacherHome(
                                 AddHeight(6.dp)
                                 Text("Highest Qualification: ${teacherData?.qualification[0]}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
-                                Text("Hiring Year: Fall ${teacherData?.hiringYear}", fontSize = 12.sp, fontFamily = Lexend)
+                                Text("Hiring Year: ${teacherData?.hiringYear}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
                                 Text("Status: ${teacherData?.status}", fontSize = 12.sp, fontFamily = Lexend)
                             }
@@ -213,6 +214,38 @@ fun TeacherHome(
                                 Text("Mobile: ${teacherData?.phone}", fontSize = 12.sp, fontFamily = Lexend)
                                 AddHeight(6.dp)
                                 Text("Blood-Group: ${teacherData?.bloodGroup}", fontSize = 12.sp, fontFamily = Lexend)
+                            }
+                        }
+                        AddHeight(20.dp)
+                        ElevatedCard (
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = if (isSystemInDarkTheme()) buttonDark else buttonLight,
+                                contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 10.dp
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(20.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                teacherData?.sections?.forEach { idx ->
+                                    idx.course.forEach { index ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(idx.name)
+                                            Text(index.name)
+                                            Text(index.numberOfStudents.toString())
+                                        }
+                                    }
+                                }
                             }
                         }
                         AddHeight(40.dp)
