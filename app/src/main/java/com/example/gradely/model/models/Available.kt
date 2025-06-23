@@ -1,6 +1,8 @@
 package com.example.gradely.model.models
 
 data class Available(
-    val section: String,
-    val teacher: String
+    val sectionId: String,
+    val sectionName: String,
+    val teacherId: String,
+    val teacherName: String
 )

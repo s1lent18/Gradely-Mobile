@@ -1,5 +1,6 @@
 package com.example.gradely.view
 
+import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -88,7 +89,8 @@ fun StudentHome(
                         text = "Course Registration",
                         isSelected = false,
                         onClick = {
-                            studentRegistrationsViewModel.getRegistration(studentId = studentData?.studentId!!)
+                            Log.d("Registration Check", studentData?.studentId!!)
+                            //studentRegistrationsViewModel.getRegistration(studentId = studentData.studentId, token = "Bearer " + studentData.token)
                             navController.navigate(Screens.StudentRegistration.route)
                         }
                     )
@@ -154,9 +156,14 @@ fun StudentHome(
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                Appbar("Home") {
+                Appbar("Course Registration", openDrawer = {
                     scope.launch { drawerState.open() }
-                }
+                }, onLogout = {
+                    studentTokenViewModel.logout()
+                    navController.navigate(Screens.StudentLanding.route) {
+                        popUpTo(0)
+                    }
+                })
             }
         ) { values ->
             ConstraintLayout (

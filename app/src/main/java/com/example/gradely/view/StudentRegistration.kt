@@ -1,5 +1,6 @@
 package com.example.gradely.view
 
+import android.util.Log
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +24,6 @@ import androidx.compose.material.icons.filled.HowToVote
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,13 +57,13 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.gradely.model.dataResponses.NetworkResponse
 import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.button
 import com.example.gradely.viewmodel.navigation.Screens
 import com.example.gradely.viewmodel.viewmodels.StudentRegistrationsViewModel
 import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,8 +77,17 @@ fun StudentRegistration(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
-    val courses = studentRegistrationsViewModel.registrationResult.collectAsState()
+    val courses by studentRegistrationsViewModel.registrationResult.collectAsState()
     val (semester, courseLimit) = getCurrentSemesterInfo()
+
+    LaunchedEffect(studentData?.studentId) {
+        studentData?.let {
+            studentRegistrationsViewModel.getRegistration(
+                studentId = it.studentId,
+                token = "Bearer ${it.token}"
+            )
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -171,9 +181,14 @@ fun StudentRegistration(
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                Appbar("Course Registration") {
+                Appbar("Course Registration", openDrawer = {
                     scope.launch { drawerState.open() }
-                }
+                }, onLogout = {
+                    studentTokenViewModel.logout()
+                    navController.navigate(Screens.StudentLanding.route) {
+                        popUpTo(0)
+                    }
+                })
             }
         ) { values ->
             ConstraintLayout (
@@ -232,115 +247,104 @@ fun StudentRegistration(
                         AddHeight(30.dp)
                     }
 
-                    when (val result = courses.value) {
-                        is NetworkResponse.Failure -> {}
-                        NetworkResponse.Loading -> {
-                            item {
-                                CircularProgressIndicator()
+                    Log.d("Registration Page Check", courses.toString())
+
+                    items(courses?.size ?: 0) { index ->
+
+                        val course = courses?.get(index)
+                        val isExpanded = remember { mutableStateOf(false) }
+                        val section = remember { mutableStateOf("") }
+                        val register = remember { mutableStateOf(false) }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(20.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "${index + 1}",
+                                fontFamily = Lexend,
+                                fontSize = 12.sp,
+                            )
+                            Box (
+                                modifier = Modifier.width(80.dp).height(50.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = course?.courseName ?: "N/A",
+                                    fontFamily = Lexend,
+                                    fontSize = 12.sp,
+                                    maxLines = 4,
+                                    overflow = TextOverflow.Ellipsis,
+                                    //modifier = Modifier.weight(0.3f)
+                                )
                             }
-                        }
-                        is NetworkResponse.Success -> {
-                            val availableCourses = result.data
-
-                            items(availableCourses.size) { index ->
-
-                                val course = availableCourses[index]
-                                val isExpanded = remember { mutableStateOf(false) }
-                                val section = remember { mutableStateOf("") }
-                                val register = remember { mutableStateOf(false) }
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                            Text(
+                                course?.status ?: "N/A",
+                                fontFamily = Lexend,
+                                fontSize = 12.sp,
+                                //modifier = Modifier.weight(0.2f)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    //.weight(0.3f)
+                                    .width(110.dp)
+                                    .height(45.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                ExposedDropdownMenuBox(
+                                    expanded = isExpanded.value,
+                                    onExpandedChange = { isExpanded.value = !isExpanded.value }
                                 ) {
-                                    Text(
-                                        "${index + 1}",
-                                        fontFamily = Lexend,
-                                        fontSize = 12.sp,
+                                    TextField(
+                                        value = section.value,
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded.value)
+                                        },
+                                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                        modifier = Modifier.menuAnchor(),
+                                        textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp)
                                     )
-                                    Box (
-                                        modifier = Modifier.width(80.dp).height(50.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = course.courseName,
-                                            fontFamily = Lexend,
-                                            fontSize = 12.sp,
-                                            maxLines = 4,
-                                            overflow = TextOverflow.Ellipsis,
-                                            //modifier = Modifier.weight(0.3f)
-                                        )
-                                    }
-                                    Text(
-                                        course.status,
-                                        fontFamily = Lexend,
-                                        fontSize = 12.sp,
-                                        //modifier = Modifier.weight(0.2f)
-                                    )
-                                    Box(
-                                        modifier = Modifier
-                                            //.weight(0.3f)
-                                            .width(110.dp)
-                                            .height(45.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        ExposedDropdownMenuBox(
-                                            expanded = isExpanded.value,
-                                            onExpandedChange = { isExpanded.value = !isExpanded.value }
-                                        ) {
-                                            TextField(
-                                                value = section.value,
-                                                onValueChange = {},
-                                                readOnly = true,
-                                                trailingIcon = {
-                                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded.value)
-                                                },
-                                                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                                                modifier = Modifier.menuAnchor(),
-                                                textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp)
-                                            )
 
-                                            ExposedDropdownMenu(
-                                                expanded = isExpanded.value,
-                                                onDismissRequest = { isExpanded.value = false }
-                                            ) {
-                                                listOf("BS(CS)-1A", "BS(CS)-1B", "BS(CS)-1C").forEach { sec ->
-                                                    DropdownMenuItem(
-                                                        text = { Text(sec, fontSize = 10.sp, fontFamily = Lexend) },
-                                                        onClick = {
-                                                            section.value = sec
-                                                            isExpanded.value = false
-                                                        }
-                                                    )
+                                    ExposedDropdownMenu(
+                                        expanded = isExpanded.value,
+                                        onDismissRequest = { isExpanded.value = false }
+                                    ) {
+                                        course?.available?.forEach { sec ->
+                                            DropdownMenuItem(
+                                                text = { Text(sec.sectionName, fontSize = 10.sp, fontFamily = Lexend) },
+                                                onClick = {
+                                                    section.value = sec.sectionName
+                                                    isExpanded.value = false
                                                 }
-                                            }
+                                            )
                                         }
                                     }
-                                    ElevatedButton(
-                                        onClick = { register.value = !register.value },
-                                        shape = RoundedCornerShape(16.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = button,
-                                            contentColor = Color.White
-                                        ),
-                                        //modifier = Modifier.weight(0.2f),
-                                        elevation = ButtonDefaults.buttonElevation(10.dp)
-                                    ) {
-                                        Text(
-                                            if (!register.value) "Register" else "Drop",
-                                            fontSize = 10.sp,
-                                            fontFamily = Lexend
-                                        )
-                                    }
                                 }
-                                AddHeight(10.dp)
-                                HorizontalDivider(color = Color.Gray)
-                                AddHeight(10.dp)
+                            }
+                            ElevatedButton(
+                                onClick = { register.value = !register.value },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = button,
+                                    contentColor = Color.White
+                                ),
+                                //modifier = Modifier.weight(0.2f),
+                                elevation = ButtonDefaults.buttonElevation(10.dp)
+                            ) {
+                                Text(
+                                    if (!register.value) "Register" else "Drop",
+                                    fontSize = 10.sp,
+                                    fontFamily = Lexend
+                                )
                             }
                         }
-                        null -> {}
+                        AddHeight(10.dp)
+                        HorizontalDivider(color = Color.Gray)
+                        AddHeight(10.dp)
                     }
                 }
             }

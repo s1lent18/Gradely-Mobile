@@ -1,8 +1,8 @@
 package com.example.gradely.viewmodel.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gradely.model.dataResponses.NetworkResponse
 import com.example.gradely.model.interfaces.StudentRegistrationAPI
 import com.example.gradely.model.models.Avaliables
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,25 +16,29 @@ class StudentRegistrationsViewModel @Inject constructor(
     private val studentRegistrationAPI: StudentRegistrationAPI
 ) : ViewModel() {
 
-    private val _registrationResult = MutableStateFlow<NetworkResponse<Avaliables>?>(null)
-    val registrationResult: StateFlow<NetworkResponse<Avaliables>?> = _registrationResult
+    private val _registrationResult = MutableStateFlow<Avaliables?>(null)
+    val registrationResult: StateFlow<Avaliables?> = _registrationResult
 
-    fun getRegistration(studentId : String) {
+    fun getRegistration(studentId : String, token: String) {
 
-        _registrationResult.value = NetworkResponse.Loading
+        Log.d("Registration Check View Model", studentId)
+
+        //_registrationResult.value = NetworkResponse.Loading
 
         viewModelScope.launch {
             try {
-                val response = studentRegistrationAPI.getRegistrations(studentId = studentId)
+                val response = studentRegistrationAPI.getRegistrations(studentId = studentId, token = token)
                 if (response.isSuccessful && response.code() == 200) {
-                    response.body()?.let {
-                        _registrationResult.value = NetworkResponse.Success(it)
+                    response.body()?.let { registrationResponse ->
+                        Log.d("Registration Response Body", response.body().toString())
+                        _registrationResult.value = registrationResponse
+                        Log.d("Registration", "Completed")
                     }
                 } else {
-                    _registrationResult.value = NetworkResponse.Failure("Wrong Username / Password")
+                    Log.d("Registration", "Failed")
                 }
             } catch (e: Exception) {
-                _registrationResult.value = NetworkResponse.Failure("$e")
+                Log.d("Registration", "Failed because of $e")
             }
         }
     }
