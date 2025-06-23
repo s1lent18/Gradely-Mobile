@@ -27,6 +27,7 @@ import com.example.gradely.ui.theme.GradelyTheme
 import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.viewmodel.navigation.Screens
 import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
+import com.example.gradely.viewmodel.viewmodels.TeacherTokenViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 
@@ -55,8 +56,10 @@ class SplashScreen : ComponentActivity() {
         var isSplashComplete by remember { mutableStateOf(false) }
         var userRole by remember { mutableStateOf<String?>(null) }
         val studentTokenViewModel = hiltViewModel<StudentTokenViewModel>()
+        val teacherTokenViewModel = hiltViewModel<TeacherTokenViewModel>()
         val studentData by studentTokenViewModel.studentData.collectAsStateWithLifecycle()
-        val sessionStatus by studentTokenViewModel.session.collectAsStateWithLifecycle()
+        val studentSessionStatus by studentTokenViewModel.session.collectAsStateWithLifecycle()
+        val teacherSessionStatus by teacherTokenViewModel.session.collectAsStateWithLifecycle()
         val text = "Gradely"
         var displayedText by remember { mutableStateOf("") }
 
@@ -77,22 +80,28 @@ class SplashScreen : ComponentActivity() {
             isSplashComplete = true
         }
 
-        LaunchedEffect(isSplashComplete, !sessionStatus, userRole) {
-            if (isSplashComplete && !sessionStatus && userRole != null) {
-                val startDestination = when {
-                    studentData?.token!!.isNotEmpty() -> {
-                        if (userRole == "Student") Screens.StudentHome.route else Screens.TeacherHome.route
-                    }
+        LaunchedEffect(isSplashComplete, userRole, studentSessionStatus, teacherSessionStatus) {
+            if (!isSplashComplete || userRole == null) return@LaunchedEffect
 
-                    else -> {
-                        if (userRole == "Student") Screens.StudentLanding.route else Screens.TeacherLanding.route
-                    }
+            val startDestination = when (userRole) {
+                "Student" -> {
+                    if (studentSessionStatus && studentData?.token?.isNotEmpty() == true)
+                        Screens.StudentHome.route
+                    else
+                        Screens.StudentLanding.route
                 }
-                onSplashFinished(startDestination)
+
+                "Teacher" -> {
+                    if (teacherSessionStatus && teacherTokenViewModel.teacherData.value?.token?.isNotEmpty() == true)
+                        Screens.TeacherHome.route
+                    else
+                        Screens.TeacherLanding.route
+                }
+
+                else -> Screens.Start.route
             }
-            else if (isSplashComplete && userRole == null) {
-                onSplashFinished(Screens.Start.route)
-            }
+
+            onSplashFinished(startDestination)
         }
 
         Box(
