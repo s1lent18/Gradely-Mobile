@@ -1,7 +1,9 @@
 package com.example.gradely.view
 
+import android.widget.Toast
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,31 +16,62 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.gradely.R
+import com.example.gradely.model.dataRequests.TeacherLoginRequest
+import com.example.gradely.model.dataResponses.NetworkResponse
 import com.example.gradely.ui.theme.IBMPlex
 import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.button
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
+import com.example.gradely.viewmodel.navigation.Screens
+import com.example.gradely.viewmodel.viewmodels.TeacherAuthViewModel
+import com.example.gradely.viewmodel.viewmodels.TeacherTokenViewModel
+import kotlinx.coroutines.delay
 
 @Composable
-fun TeacherLanding() {
+fun TeacherLanding(
+    navController: NavController,
+    teacherAuthViewModel: TeacherAuthViewModel = hiltViewModel(),
+    teacherTokenViewModel: TeacherTokenViewModel = hiltViewModel()
+) {
     Surface {
 
         val (email, setEmail) = remember { mutableStateOf("") }
         val (password, setPassword) = remember { mutableStateOf("") }
         val color = if (isSystemInDarkTheme()) buttonDark else buttonLight
+        var passwordVisibility by remember { mutableStateOf(false) }
+        val context = LocalContext.current
+        val icon = if (passwordVisibility) painterResource(id = R.drawable.eye) else painterResource(id = R.drawable.lock)
+        val keyboardController = LocalSoftwareKeyboardController.current
+        val loginResult = teacherAuthViewModel.loginResult.collectAsState()
+        var requestreceived by remember { mutableStateOf(false) }
+        var isLoading by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -114,23 +147,84 @@ fun TeacherLanding() {
                         label = "password",
                         value = password,
                         onValueChange = setPassword,
-                        color = color
+                        color = color,
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    passwordVisibility = !passwordVisibility
+                                }
+                            ) {
+                                Icon(
+                                    painter = icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
+                        },
+                        visualTransformation = if (passwordVisibility) VisualTransformation.None else PasswordVisualTransformation(),
                     )
 
                     AddHeight(40.dp)
 
-                    Button(
-                        modifier = Modifier.fillMaxWidth(fraction = 0.9f).height(50.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        onClick = {
+                    if (!isLoading) {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(fraction = 0.9f).height(50.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            onClick = {
+                                if (email.isNotEmpty() && password.isNotEmpty()) {
+                                    keyboardController?.hide()
+                                    isLoading = true
+                                    requestreceived = true
+                                    val teacherLoginRequest = TeacherLoginRequest(email = email, password = password)
+                                    teacherAuthViewModel.teacherLogin(teacherLoginRequest)
+                                }
+                                else if (email.isEmpty()) {
+                                    Toast.makeText(context, "Enter Email", Toast.LENGTH_SHORT).show()
+                                }
+                                else if (password.isEmpty()) {
+                                    Toast.makeText(context, "Enter password", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = button,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("Login", fontFamily = Lexend)
+                        }
+                    }
+                    else {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(fraction = 0.9f).height(50.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
+                        }
+                    }
 
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = button,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Text("Login", fontFamily = Lexend)
+                    if (email.isNotEmpty() && password.isNotEmpty() && requestreceived) {
+                        when (val result = loginResult.value) {
+                            is NetworkResponse.Failure -> {
+                                isLoading = false
+                                Toast.makeText(context, "Incorrect Credentials", Toast.LENGTH_LONG).show()
+                                requestreceived = false
+                            }
+
+                            NetworkResponse.Loading -> { isLoading = true }
+                            is NetworkResponse.Success -> {
+                                isLoading = false
+                                LaunchedEffect(Unit) {
+                                    teacherTokenViewModel.saveUserData(
+                                        teacherData = result.data.teacherData,
+                                        timeStamp = System.currentTimeMillis().toString(),
+                                    )
+                                    Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
+                                    delay(2000)
+                                    navController.navigate(route = Screens.StudentHome.route)
+                                }
+                            }
+                            null -> {}
+                        }
                     }
                 }
             }
