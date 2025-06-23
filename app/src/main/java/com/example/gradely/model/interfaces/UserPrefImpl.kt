@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import com.example.gradely.model.models.StudentData
+import com.example.gradely.model.models.TeacherData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -22,6 +23,21 @@ class UserPrefImpl (private val dataStore: DataStore<Preferences>) : UserPref {
                 preferences[STUDENT_DATA_KEY]?.let {
                     try {
                         Json.decodeFromString<StudentData>(it)
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
+            }
+    }
+
+    override fun getTeacherData(): Flow<TeacherData?> {
+        return dataStore.data
+            .catch {
+                emit(emptyPreferences())
+            }.map { preferences ->
+                preferences[TEACHER_DATA_KEY]?.let {
+                    try {
+                        Json.decodeFromString<TeacherData>(it)
                     } catch (_: Exception) {
                         null
                     }
@@ -49,6 +65,13 @@ class UserPrefImpl (private val dataStore: DataStore<Preferences>) : UserPref {
         val jsonString = Json.encodeToString(studentData)
         dataStore.edit { preferences ->
             preferences[STUDENT_DATA_KEY] = jsonString
+        }
+    }
+
+    override suspend fun saveTeacherData(teacherData: TeacherData) {
+        val jsonString = Json.encodeToString(teacherData)
+        dataStore.edit { preferences ->
+            preferences[TEACHER_DATA_KEY] = jsonString
         }
     }
 
