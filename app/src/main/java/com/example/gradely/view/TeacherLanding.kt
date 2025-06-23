@@ -220,7 +220,7 @@ fun TeacherLanding(
                                     )
                                     Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
                                     delay(2000)
-                                    navController.navigate(route = Screens.StudentHome.route)
+                                    navController.navigate(route = Screens.TeacherHome.route)
                                 }
                             }
                             null -> {}

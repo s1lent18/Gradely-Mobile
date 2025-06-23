@@ -17,5 +17,8 @@ data class TeacherData(
     val sections: List<Section>,
     val teacherId: String,
     val teacherName: String,
-    val token: String
+    val token: String,
+    val status: String,
+    val dob: String,
+    val hiringYear: String
 )
