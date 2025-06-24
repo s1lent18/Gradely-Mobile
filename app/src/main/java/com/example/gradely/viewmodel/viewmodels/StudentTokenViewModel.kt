@@ -8,8 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -20,19 +20,23 @@ class StudentTokenViewModel @Inject constructor(
     private val userPref: UserPref
 ) : ViewModel() {
 
+    init {
+        checkSession()
+        startAutoLogoutTimer()
+    }
+
     private val sessionDurationMillis = TimeUnit.MINUTES.toMillis(15)
 
     private val _session = MutableStateFlow(false)
+    val session: StateFlow<Boolean> = _session
 
-    val session = _session.onStart {
-        if (isSessionExpired()) {
-            logout()
+    private fun checkSession() {
+        viewModelScope.launch {
+            val expired = isSessionExpired()
+            _session.value = !expired
+            if (expired) logout()
         }
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        initialValue = false
-    )
+    }
 
     private suspend fun isSessionExpired(): Boolean {
         val loginTimestamp = userPref.getTimeStamp().first().toLongOrNull() ?: return true

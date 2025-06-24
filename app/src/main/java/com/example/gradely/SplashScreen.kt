@@ -60,6 +60,7 @@ class SplashScreen : ComponentActivity() {
         val studentTokenViewModel = hiltViewModel<StudentTokenViewModel>()
         val teacherTokenViewModel = hiltViewModel<TeacherTokenViewModel>()
         val studentData by studentTokenViewModel.studentData.collectAsStateWithLifecycle()
+        val teacherData by teacherTokenViewModel.teacherData.collectAsStateWithLifecycle()
         val studentSessionStatus by studentTokenViewModel.session.collectAsStateWithLifecycle()
         val teacherSessionStatus by teacherTokenViewModel.session.collectAsStateWithLifecycle()
         val text = "Gradely"
@@ -100,7 +101,7 @@ class SplashScreen : ComponentActivity() {
                 }
 
                 "Teacher" -> {
-                    if (teacherSessionStatus && teacherTokenViewModel.teacherData.value?.token?.isNotEmpty() == true)
+                    if (teacherSessionStatus && teacherData?.token?.isNotEmpty() == true)
                         Screens.TeacherHome.route
                     else
                         Screens.TeacherLanding.route

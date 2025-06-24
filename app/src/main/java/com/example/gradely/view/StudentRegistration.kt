@@ -268,7 +268,7 @@ fun StudentRegistration(
                                 fontSize = 12.sp,
                             )
                             Box (
-                                modifier = Modifier.width(80.dp).height(50.dp),
+                                modifier = Modifier.width(150.dp).height(50.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -277,18 +277,15 @@ fun StudentRegistration(
                                     fontSize = 12.sp,
                                     maxLines = 4,
                                     overflow = TextOverflow.Ellipsis,
-                                    //modifier = Modifier.weight(0.3f)
                                 )
                             }
                             Text(
                                 course?.status ?: "N/A",
                                 fontFamily = Lexend,
                                 fontSize = 12.sp,
-                                //modifier = Modifier.weight(0.2f)
                             )
                             Box(
                                 modifier = Modifier
-                                    //.weight(0.3f)
                                     .width(110.dp)
                                     .height(45.dp),
                                 contentAlignment = Alignment.Center
@@ -332,7 +329,6 @@ fun StudentRegistration(
                                     containerColor = button,
                                     contentColor = Color.White
                                 ),
-                                //modifier = Modifier.weight(0.2f),
                                 elevation = ButtonDefaults.buttonElevation(10.dp)
                             ) {
                                 Text(
