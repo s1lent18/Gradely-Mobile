@@ -9,5 +9,6 @@ data class AvaliablesItem(
     val courseId: String,
     val courseName: String,
     val desc: String,
-    val status: String
+    val status: String,
+    val creditHours: Int
 )

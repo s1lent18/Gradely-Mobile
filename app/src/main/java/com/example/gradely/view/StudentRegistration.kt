@@ -2,6 +2,7 @@ package com.example.gradely.view
 
 import android.util.Log
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -64,6 +66,10 @@ import com.example.gradely.viewmodel.viewmodels.StudentRegistrationsViewModel
 import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
+import com.example.gradely.ui.theme.buttonDark
+import com.example.gradely.ui.theme.buttonLight
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,6 +85,8 @@ fun StudentRegistration(
     val scope = rememberCoroutineScope()
     val courses by studentRegistrationsViewModel.registrationResult.collectAsState()
     val (semester, courseLimit) = getCurrentSemesterInfo()
+    val color = if (isSystemInDarkTheme()) buttonDark else buttonLight
+    var registeredCredits by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(studentData?.studentId) {
         studentData?.let {
@@ -224,8 +232,8 @@ fun StudentRegistration(
                         TextModify("Batch: ", "Fall ${studentData?.batch}")
                         TextModify("Credits Earned: ", "${studentData?.creditsEarned}")
                         TextModify("Semester: ", semester)
-                        TextModify("Registered Credits: ", "0")
-                        TextModify("Status: ", "${studentData?.creditsEarned}")
+                        TextModify("Registered Credits: ", registeredCredits.toString())
+                        TextModify("Status: ", "${studentData?.status}")
                         TextModify("CGPA: ", "${studentData?.cgpa}")
                         TextModify("Course Limit for Semester: ", courseLimit)
                     }
@@ -252,9 +260,17 @@ fun StudentRegistration(
                     items(courses?.size ?: 0) { index ->
 
                         val course = courses?.get(index)
-                        val isExpanded = remember { mutableStateOf(false) }
+                        val isExpanded1 = remember { mutableStateOf(false) }
+                        val isExpanded2 = remember { mutableStateOf(false) }
                         val section = remember { mutableStateOf("") }
                         val register = remember { mutableStateOf(false) }
+                        val teacher = remember { mutableStateOf("") }
+                        val selectedTeacher = remember { mutableStateOf("") }
+                        val filteredSections = remember(selectedTeacher.value, course) {
+                            derivedStateOf {
+                                course?.available?.filter { it.teacherId == selectedTeacher.value } ?: emptyList()
+                            }
+                        }
 
                         Row(
                             modifier = Modifier
@@ -291,31 +307,91 @@ fun StudentRegistration(
                                 contentAlignment = Alignment.Center
                             ) {
                                 ExposedDropdownMenuBox(
-                                    expanded = isExpanded.value,
-                                    onExpandedChange = { isExpanded.value = !isExpanded.value }
+                                    expanded = isExpanded1.value,
+                                    onExpandedChange = { isExpanded1.value = !isExpanded1.value }
+                                ) {
+                                    TextField(
+                                        value = teacher.value,
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        trailingIcon = {
+                                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded1.value)
+                                        },
+                                        colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                            focusedContainerColor = color,
+                                            unfocusedContainerColor = color,
+                                            focusedIndicatorColor = Color.Transparent,
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                            disabledIndicatorColor = Color.Transparent,
+                                            disabledLabelColor = Color.Gray,
+                                            unfocusedLabelColor = Color.Gray,
+                                            focusedLabelColor = Color.Gray
+                                        ),
+                                        modifier = Modifier.menuAnchor(),
+                                        textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp)
+                                    )
+
+                                    ExposedDropdownMenu(
+                                        expanded = isExpanded1.value,
+                                        onDismissRequest = { isExpanded1.value = false }
+                                    ) {
+                                        course?.available
+                                            ?.distinctBy { it.teacherId }
+                                            ?.forEach { sec ->
+                                            DropdownMenuItem(
+                                                text = { Text(sec.teacherName, fontSize = 10.sp, fontFamily = Lexend) },
+                                                onClick = {
+                                                    teacher.value = sec.teacherName
+                                                    selectedTeacher.value = sec.teacherId
+                                                    section.value = ""
+                                                    isExpanded1.value = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .width(110.dp)
+                                    .height(45.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                ExposedDropdownMenuBox(
+                                    expanded = isExpanded2.value,
+                                    onExpandedChange = { isExpanded2.value = !isExpanded2.value }
                                 ) {
                                     TextField(
                                         value = section.value,
                                         onValueChange = {},
                                         readOnly = true,
                                         trailingIcon = {
-                                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded.value)
+                                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded2.value)
                                         },
-                                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                        colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                            focusedContainerColor = color,
+                                            unfocusedContainerColor = color,
+                                            focusedIndicatorColor = Color.Transparent,
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                            disabledIndicatorColor = Color.Transparent,
+                                            disabledLabelColor = Color.Gray,
+                                            unfocusedLabelColor = Color.Gray,
+                                            focusedLabelColor = Color.Gray
+                                        ),
                                         modifier = Modifier.menuAnchor(),
                                         textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp)
                                     )
 
                                     ExposedDropdownMenu(
-                                        expanded = isExpanded.value,
-                                        onDismissRequest = { isExpanded.value = false }
+                                        expanded = isExpanded2.value,
+                                        onDismissRequest = { isExpanded2.value = false }
                                     ) {
-                                        course?.available?.forEach { sec ->
+                                        filteredSections.value.forEach { sec ->
                                             DropdownMenuItem(
                                                 text = { Text(sec.sectionName, fontSize = 10.sp, fontFamily = Lexend) },
                                                 onClick = {
                                                     section.value = sec.sectionName
-                                                    isExpanded.value = false
+                                                    isExpanded2.value = false
                                                 }
                                             )
                                         }
@@ -323,7 +399,14 @@ fun StudentRegistration(
                                 }
                             }
                             ElevatedButton(
-                                onClick = { register.value = !register.value },
+                                onClick = {
+                                    register.value = !register.value
+                                    if (!register.value) {
+                                        course?.creditHours?.let { registeredCredits -= it }
+                                    } else {
+                                        course?.creditHours?.let { registeredCredits += it }
+                                    }
+                                },
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = button,
