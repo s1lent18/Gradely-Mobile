@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,8 +36,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,6 +51,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -58,8 +63,12 @@ import com.example.gradely.ui.theme.button
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
 import com.example.gradely.viewmodel.navigation.Screens
+import com.example.gradely.viewmodel.viewmodels.StudentMarksViewModel
 import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.example.gradely.model.models.CourseXX
 
 @Composable
 fun CourseSelection(text: String, onClick: () -> Unit) {
@@ -83,20 +92,59 @@ fun CourseSelection(text: String, onClick: () -> Unit) {
     }
 }
 
+@Preview
+@Composable
+fun MarksCard() {
+    ElevatedCard (
+        modifier = Modifier.fillMaxWidth().height(100.dp),
+        shape = RoundedCornerShape(6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSystemInDarkTheme()) buttonDark else buttonLight,
+            contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+        ),
+        elevation = CardDefaults.cardElevation(10.dp)
+    ) {
+        Row (
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text("39", fontFamily = Lexend, fontWeight = FontWeight.Bold)
+            VerticalDivider(
+                modifier = Modifier.fillMaxHeight(fraction = 0.8f),
+                color = Color.Black
+            )
+            Text("50", fontFamily = Lexend, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentMarks(
     navController : NavController,
-    studentTokenViewModel : StudentTokenViewModel = hiltViewModel()
+    studentTokenViewModel : StudentTokenViewModel = hiltViewModel(),
+    studentMarksViewModel: StudentMarksViewModel = hiltViewModel()
 ) {
 
+    val semesters by studentMarksViewModel.semestersResult.collectAsState()
+    val studentData = studentTokenViewModel.studentData.collectAsState().value
     val semester = remember { mutableStateOf("") }
     val isExpanded = remember { mutableStateOf(false) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
     val color = if (isSystemInDarkTheme()) buttonDark else buttonLight
-    val courses = listOf("AI2002", "AL2002", "CL3001", "CS3001", "CS3009", "CS4045", "SS2007")
+    val courses = listOf(semesters?.semesters[semesters!!.semesters.size - 1]?.courses ?: "")
+
+    LaunchedEffect(studentData?.studentId) {
+        studentData?.let {
+            studentMarksViewModel.getSemesters(
+                studentId = it.studentId,
+                token = "Bearer ${it.token}"
+            )
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -205,7 +253,7 @@ fun StudentMarks(
                     .fillMaxSize()
                     .padding(values)
             ) {
-                val (dropDown, lazyRow) = createRefs()
+                val (dropDown, lazyRow, tell, lazyColumn) = createRefs()
 
                 Row (
                     modifier = Modifier.constrainAs(dropDown) {
@@ -274,9 +322,44 @@ fun StudentMarks(
                     },
                     contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
                 ) {
+
+
                     items (courses) { course ->
                         CourseSelection(course, onClick = {})
                         AddWidth(14.dp)
+                    }
+                }
+
+                Row (
+                    modifier = Modifier.constrainAs(tell) {
+                        top.linkTo(lazyRow.bottom, margin = 20.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        width = Dimension.percent(0.9f)
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text("Marks Obtained", fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                    VerticalDivider(
+                        modifier = Modifier.fillMaxHeight(fraction = 0.8f),
+                        color = Color.Black
+                    )
+                    Text("Total Marks", fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                }
+
+                LazyColumn (
+                    modifier = Modifier.constrainAs(lazyColumn) {
+                        top.linkTo(tell.bottom, margin = 20.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        width = Dimension.percent(0.9f)
+                        bottom.linkTo(parent.bottom, margin = 30.dp)
+                        height = Dimension.fillToConstraints
+                    }
+                ) {
+                    item {
+
                     }
                 }
             }
