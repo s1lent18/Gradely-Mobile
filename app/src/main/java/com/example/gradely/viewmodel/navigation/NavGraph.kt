@@ -62,7 +62,7 @@ fun NavGraph(
         }
 
         composable(Screens.StudentMarks.route) {
-            StudentMarks()
+            StudentMarks(navController = navController)
         }
 
         composable(Screens.TeacherMarks.route) {
