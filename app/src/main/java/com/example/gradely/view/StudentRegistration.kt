@@ -67,7 +67,10 @@ import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.font.FontWeight
+import com.example.gradely.model.dataRequests.StudentRegistrationRequest
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
 
@@ -87,6 +90,7 @@ fun StudentRegistration(
     val (semester, courseLimit) = getCurrentSemesterInfo()
     val color = if (isSystemInDarkTheme()) buttonDark else buttonLight
     var registeredCredits by remember { mutableIntStateOf(0) }
+    val registrationRequest = remember { mutableStateListOf<StudentRegistrationRequest>() }
 
     LaunchedEffect(studentData?.studentId) {
         studentData?.let {
@@ -205,7 +209,7 @@ fun StudentRegistration(
                     .padding(values)
             ) {
 
-                val (bar, scroll) = createRefs()
+                val (bar, scroll, finalButton) = createRefs()
 
                 ElevatedCard(
                     modifier = Modifier.constrainAs(bar) {
@@ -247,12 +251,12 @@ fun StudentRegistration(
                             start.linkTo(parent.start)
                             end.linkTo(parent.end)
                             width = Dimension.percent(0.9f)
-                            bottom.linkTo(parent.bottom, margin = 30.dp)
+                            bottom.linkTo(finalButton.top, margin = 30.dp)
                             height = Dimension.fillToConstraints
                         }
                 ) {
                     item {
-                        AddHeight(30.dp)
+                        AddHeight(8.dp)
                     }
 
                     Log.d("Registration Page Check", courses.toString())
@@ -263,6 +267,7 @@ fun StudentRegistration(
                         val isExpanded1 = remember { mutableStateOf(false) }
                         val isExpanded2 = remember { mutableStateOf(false) }
                         val section = remember { mutableStateOf("") }
+                        val selectedSection = remember { mutableStateOf("") }
                         val register = remember { mutableStateOf(false) }
                         val teacher = remember { mutableStateOf("") }
                         val selectedTeacher = remember { mutableStateOf("") }
@@ -391,6 +396,7 @@ fun StudentRegistration(
                                                 text = { Text(sec.sectionName, fontSize = 10.sp, fontFamily = Lexend) },
                                                 onClick = {
                                                     section.value = sec.sectionName
+                                                    selectedSection.value = sec.sectionId
                                                     isExpanded2.value = false
                                                 }
                                             )
@@ -405,25 +411,64 @@ fun StudentRegistration(
                                         course?.creditHours?.let { registeredCredits -= it }
                                     } else {
                                         course?.creditHours?.let { registeredCredits += it }
+                                        course?.courseId?.let {
+                                            registrationRequest.add(StudentRegistrationRequest(
+                                                courseId = it,
+                                                sectionId = selectedSection.value,
+                                                teacherId = selectedTeacher.value
+                                            ))
+                                        }
                                     }
                                 },
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = button,
-                                    contentColor = Color.White
+                                    containerColor = if (register.value) button else Color(0xFF55a630),
+                                    contentColor = if (register.value) Color.White else Color.Black
                                 ),
                                 elevation = ButtonDefaults.buttonElevation(10.dp)
                             ) {
                                 Text(
                                     if (!register.value) "Register" else "Drop",
                                     fontSize = 10.sp,
-                                    fontFamily = Lexend
+                                    fontFamily = Lexend,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                         AddHeight(10.dp)
                         HorizontalDivider(color = Color.Gray)
                         AddHeight(10.dp)
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .constrainAs(finalButton) {
+                            top.linkTo(scroll.bottom, margin = 10.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            width = Dimension.percent(0.9f)
+                            bottom.linkTo(parent.bottom, margin = 30.dp)
+                        }
+                        .padding(top = 20.dp)
+                ) {
+                    ElevatedButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            // Handle registration
+                        },
+                        shape = RoundedCornerShape(5.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = button,
+                            contentColor = Color.White
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(10.dp)
+                    ) {
+                        Text(
+                            "Register",
+                            fontSize = 10.sp,
+                            fontFamily = Lexend,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
