@@ -1,5 +1,6 @@
 package com.example.gradely.viewmodel.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gradely.model.dataRequests.StudentLoginRequest
@@ -24,17 +25,22 @@ class StudentAuthViewModel @Inject constructor(
 
         _loginResult.value = NetworkResponse.Loading
 
+        Log.d("AuthViewModel", "$studentLoginRequest")
+
         viewModelScope.launch {
             try {
                 val response = studentLoginApi.loginStudent(studentLoginRequest = studentLoginRequest)
                 if (response.isSuccessful && response.code() == 200) {
                     response.body()?.let {
+                        Log.d("AuthViewModel", "$it")
                         _loginResult.value = NetworkResponse.Success(it)
                     }
                 } else {
+                    Log.d("AuthViewModel", "Failed")
                     _loginResult.value = NetworkResponse.Failure("Wrong Username / Password")
                 }
             } catch (e: Exception) {
+                Log.d("AuthViewModel", "$e")
                 _loginResult.value = NetworkResponse.Failure("$e")
             }
         }

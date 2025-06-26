@@ -1,11 +1,7 @@
 package com.example.gradely.model.models
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class Details(
+data class AllResult(
     val assignments: List<Assignment>,
-    val attendance: List<Attendance>,
     val classParticipationScore: String,
     val classParticipationTotal: String,
     val courseCode: String,
@@ -18,5 +14,6 @@ data class Details(
     val name: String,
     val projectScore: String,
     val projectTotal: String,
-    val quizzes: List<Quiz>
+    val quizzes: List<Quiz>,
+    val studentId: String
 )
