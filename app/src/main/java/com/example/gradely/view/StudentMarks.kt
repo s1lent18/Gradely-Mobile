@@ -1,5 +1,6 @@
 package com.example.gradely.view
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ModalDrawerSheet
@@ -68,11 +70,25 @@ import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import co.yml.charts.axis.AxisData
+import co.yml.charts.common.model.Point
+import co.yml.charts.ui.linechart.LineChart
+import co.yml.charts.ui.linechart.model.GridLines
+import co.yml.charts.ui.linechart.model.IntersectionPoint
+import co.yml.charts.ui.linechart.model.Line
+import co.yml.charts.ui.linechart.model.LineChartData
+import co.yml.charts.ui.linechart.model.LinePlotData
+import co.yml.charts.ui.linechart.model.LineStyle
+import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
+import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
+import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.example.gradely.model.dataRequests.StudentAllResultRequest
-import com.example.gradely.model.models.CourseXX
+import com.example.gradely.model.models.Course
 
 @Composable
-fun CourseSelection(course: CourseXX, onClick: () -> Unit) {
+fun CourseSelection(course: Course, onClick: () -> Unit) {
     ElevatedCard(
         onClick = onClick,
         shape = RoundedCornerShape(6.dp),
@@ -90,14 +106,15 @@ fun CourseSelection(course: CourseXX, onClick: () -> Unit) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(course.details.courseCode, fontWeight = FontWeight.Bold, fontFamily = Lexend, fontSize = 12.sp)
+            Text(course.details?.courseCode ?: "N/A", fontWeight = FontWeight.Bold, fontFamily = Lexend, fontSize = 12.sp)
         }
     }
 }
 
 @Composable
-fun MarksCard(score: String, total: String) {
+fun MarksCard(score: String, total: String, onClick: () -> Unit) {
     ElevatedCard (
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp),
@@ -167,6 +184,7 @@ fun MarksListCard(score: List<String>, total: List<String>) {
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentMarks(
@@ -175,16 +193,17 @@ fun StudentMarks(
     studentMarksViewModel: StudentMarksViewModel = hiltViewModel()
 ) {
     val allResult by studentMarksViewModel.allResult.collectAsState()
-    val semesters by studentMarksViewModel.semestersResult.collectAsState()
+    val studentResult by studentMarksViewModel.semestersResult.collectAsState()
     val studentData = studentTokenViewModel.studentData.collectAsState().value
-    val semester = remember { mutableStateOf("") }
     val isExpanded = remember { mutableStateOf(false) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
     val color = if (isSystemInDarkTheme()) buttonDark else buttonLight
-    val courses = semesters?.semesters?.lastOrNull()?.courses ?: emptyList()
-    val selectedCourse = remember { mutableStateOf<CourseXX?>(null) }
+    val courses = studentResult?.semesters?.lastOrNull()?.courses ?: emptyList()
+    val semesters = studentResult?.semesters ?: emptyList()
+
+    val selectedCourse = remember { mutableStateOf<Course?>(null) }
 
     LaunchedEffect(studentData?.studentId) {
         studentData?.let {
@@ -322,192 +341,307 @@ fun StudentMarks(
             ) {
                 val (dropDown, lazyRow, tell, lazyColumn) = createRefs()
 
-                Row (
-                    modifier = Modifier.constrainAs(dropDown) {
-                        top.linkTo(parent.top, margin = 30.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    ExposedDropdownMenuBox(
-                        expanded = isExpanded.value,
-                        onExpandedChange = { isExpanded.value = !isExpanded.value }
+                if (studentResult == null) {
+                    Box (
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        TextField(
-                            value = semester.value,
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded.value)
-                            },
-                            colors = ExposedDropdownMenuDefaults.textFieldColors(
-                                focusedContainerColor = color,
-                                unfocusedContainerColor = color,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                disabledIndicatorColor = Color.Transparent,
-                                disabledLabelColor = Color.Gray,
-                                unfocusedLabelColor = Color.Gray,
-                                focusedLabelColor = Color.Gray
-                            ),
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth(fraction = 0.6f)
-                                .height(50.dp),
-                            textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp, textAlign = TextAlign.Center),
-                            shape = RoundedCornerShape(10.dp)
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = isExpanded.value,
-                            onDismissRequest = { isExpanded.value = false }
-                        ) {
-                            listOf(
-                                "Fall 2022",
-                                "Spring 2023",
-                                "Summer 2023",
-                                "Fall 2023",
-                                "Spring 2024"
-                            ).forEach { sec ->
-                                DropdownMenuItem(
-                                    text = { Text(sec, fontSize = 10.sp, fontFamily = Lexend) },
-                                    onClick = {
-                                        semester.value = sec
-                                        isExpanded.value = false
-                                    }
-                                )
-                            }
-                        }
+                        CircularProgressIndicator()
                     }
-                }
-
-                LazyRow (
-                    modifier = Modifier.constrainAs(lazyRow) {
-                        top.linkTo(dropDown.bottom, margin = 30.dp)
-                        width = Dimension.fillToConstraints
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    },
-                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
-                ) {
-                    items (courses) { course ->
-                        CourseSelection(course, onClick = { selectedCourse.value = course })
-                        AddWidth(14.dp)
-                    }
-                }
-
-                Row (
-                    modifier = Modifier
-                        .constrainAs(tell) {
-                            top.linkTo(lazyRow.bottom, margin = 20.dp)
+                } else {
+                    val selectedSemester = remember { mutableStateOf(semesters[semesters.size - 1]) }
+                    selectedCourse.value = selectedSemester.value.courses[0]
+                    Row (
+                        modifier = Modifier.constrainAs(dropDown) {
+                            top.linkTo(parent.top, margin = 30.dp)
                             start.linkTo(parent.start)
                             end.linkTo(parent.end)
-                        }
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    ElevatedCard (
-                        modifier = Modifier
-                            .fillMaxWidth(fraction = 0.8f),
-                        shape = RoundedCornerShape(6.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isSystemInDarkTheme()) buttonDark else buttonLight,
-                            contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
-                        ),
-                        elevation = CardDefaults.cardElevation(10.dp)
+                        },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Row (
-                            modifier = Modifier.fillMaxSize(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ExposedDropdownMenuBox(
+                            expanded = isExpanded.value,
+                            onExpandedChange = { isExpanded.value = !isExpanded.value }
                         ) {
-                            Text("Marks Obtained", fontFamily = Lexend, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            VerticalDivider(
-                                modifier = Modifier.fillMaxHeight(fraction = 0.8f),
-                                color = Color.Black
+                            TextField(
+                                value = selectedSemester.value.name,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded.value)
+                                },
+                                colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                    focusedContainerColor = color,
+                                    unfocusedContainerColor = color,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    disabledIndicatorColor = Color.Transparent,
+                                    disabledLabelColor = Color.Gray,
+                                    unfocusedLabelColor = Color.Gray,
+                                    focusedLabelColor = Color.Gray
+                                ),
+                                modifier = Modifier
+                                    .menuAnchor(
+                                    type = ExposedDropdownMenuAnchorType.PrimaryEditable,
+                                    enabled = true
+                                )
+                                    .fillMaxWidth(fraction = 0.4f)
+                                    .height(50.dp),
+                                textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp, textAlign = TextAlign.Center),
+                                shape = RoundedCornerShape(10.dp)
                             )
-                            Text("Total Marks", fontFamily = Lexend, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+
+                            ExposedDropdownMenu(
+                                expanded = isExpanded.value,
+                                onDismissRequest = { isExpanded.value = false }
+                            ) {
+                                studentResult!!.semesters.forEach { it ->
+                                    DropdownMenuItem(
+                                        text = { Text(it.name, fontSize = 10.sp, fontFamily = Lexend) },
+                                        onClick = {
+                                            selectedSemester.value = it
+                                            isExpanded.value = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
-                }
 
-                LazyColumn (
-                    modifier = Modifier.constrainAs(lazyColumn) {
-                        top.linkTo(tell.bottom, margin = 20.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        width = Dimension.percent(0.9f)
-                        bottom.linkTo(parent.bottom, margin = 30.dp)
-                        height = Dimension.fillToConstraints
+                    LazyRow (
+                        modifier = Modifier.constrainAs(lazyRow) {
+                            top.linkTo(dropDown.bottom, margin = 30.dp)
+                            width = Dimension.fillToConstraints
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        },
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp),
+                    ) {
+                        items (courses) { course ->
+                            CourseSelection(course, onClick = { selectedCourse.value = course })
+                            AddWidth(14.dp)
+                        }
                     }
-                ) {
-                    item {
-                        selectedCourse.value?.let {
-                            if (it.details.assignments.isEmpty()) {
-                                val scores = mutableListOf<String>()
-                                val totals = mutableListOf<String>()
-                                it.details.assignments.forEach { assignment ->
-                                    scores.add(assignment.assignmentScore)
-                                    totals.add(assignment.assignmentTotal)
+
+                    Row (
+                        modifier = Modifier
+                            .constrainAs(tell) {
+                                top.linkTo(lazyRow.bottom, margin = 20.dp)
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                            }
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        ElevatedCard (
+                            modifier = Modifier
+                                .fillMaxWidth(fraction = 0.8f),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSystemInDarkTheme()) buttonDark else buttonLight,
+                                contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+                            ),
+                            elevation = CardDefaults.cardElevation(10.dp)
+                        ) {
+                            Row (
+                                modifier = Modifier.fillMaxSize(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                Text("Marks Obtained", fontFamily = Lexend, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                VerticalDivider(
+                                    modifier = Modifier.fillMaxHeight(fraction = 0.8f),
+                                    color = Color.Black
+                                )
+                                Text("Total Marks", fontFamily = Lexend, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            }
+                        }
+                    }
+
+                    LazyColumn (
+                        modifier = Modifier.constrainAs(lazyColumn) {
+                            top.linkTo(tell.bottom, margin = 20.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            width = Dimension.percent(0.9f)
+                            bottom.linkTo(parent.bottom, margin = 30.dp)
+                            height = Dimension.fillToConstraints
+                        }
+                    ) {
+                        item {
+
+                            selectedCourse.value?.let {
+                                if (it.details?.assignments?.isNotEmpty() ?: false) {
+                                    Text("Assignments", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                                    AddHeight(5.dp)
+                                    val scores = mutableListOf<String>()
+                                    val totals = mutableListOf<String>()
+                                    it.details.assignments.forEach { assignment ->
+                                        scores.add(assignment.assignmentScore)
+                                        totals.add(assignment.assignmentTotal)
+                                    }
+                                    MarksListCard(score = scores, total = totals)
                                 }
-                                MarksListCard(score = scores, total = totals)
                             }
-                        }
 
-                        AddHeight(30.dp)
+                            AddHeight(30.dp)
 
-                        selectedCourse.value?.let {
-                            if (it.details.quizzes.isEmpty()) {
-                                val scores = mutableListOf<String>()
-                                val totals = mutableListOf<String>()
-                                it.details.quizzes.forEach { assignment ->
-                                    scores.add(assignment.quizScore)
-                                    totals.add(assignment.quizTotal)
+                            selectedCourse.value?.let {
+                                if (it.details?.quizzes?.isNotEmpty() ?: false) {
+                                    Text("Quiz", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                                    AddHeight(5.dp)
+                                    val scores = mutableListOf<String>()
+                                    val totals = mutableListOf<String>()
+                                    it.details.quizzes.forEach { assignment ->
+                                        scores.add(assignment.quizScore)
+                                        totals.add(assignment.quizTotal)
+                                    }
+                                    MarksListCard(score = scores, total = totals)
                                 }
-                                MarksListCard(score = scores, total = totals)
                             }
-                        }
 
-                        AddHeight(30.dp)
+                            AddHeight(30.dp)
 
-                        selectedCourse.value?.let {
-                            if (it.details.mid1Score == "?") {
-                                MarksCard(it.details.mid1Score, it.details.mid1Total)
+                            selectedCourse.value?.let {
+                                if (it.details?.mid1?.examScore != "?") {
+                                    Text("Mid-1", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                                    AddHeight(5.dp)
+                                    if (it.details != null) {
+                                        MarksCard(
+                                            (
+                                                    (it.details.mid1.examScore.toDouble()
+                                                        .div(
+                                                            it.details.mid1.examTotal.toDouble()
+                                                        )).times(
+                                                            it.details.mid1.weightage.toDouble()
+                                                        )).toString(),
+                                            it.details.mid1.weightage,
+                                            onClick = {}
+                                        )
+                                    }
+                                }
                             }
-                        }
 
-                        AddHeight(30.dp)
-                        selectedCourse.value?.let {
-                            if (it.details.mid2Score == "?") {
-                                MarksCard(it.details.mid2Score, it.details.mid2Total)
+                            AddHeight(30.dp)
+
+                            selectedCourse.value?.let {
+                                if (it.details?.mid2?.examScore != "?") {
+                                    Text("Mid-2", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                                    AddHeight(5.dp)
+                                    if (it.details != null) {
+                                        MarksCard(
+                                            (
+                                                    (it.details.mid2.examScore.toDouble() / it.details.mid2.examTotal.toDouble())
+                                                            * it.details.mid2.weightage.toDouble()).toString(),
+                                            it.details.mid2.weightage,
+                                            onClick = {}
+                                        )
+                                    }
+                                }
                             }
-                        }
 
-                        AddHeight(30.dp)
+                            AddHeight(30.dp)
 
-                        selectedCourse.value?.let {
-                            if (it.details.classParticipationScore == "?") {
-                                MarksCard(it.details.classParticipationScore, it.details.classParticipationTotal)
+                            selectedCourse.value?.let {
+                                if (it.details?.classParticipationScore != "?") {
+                                    Text("Class Participation", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                                    AddHeight(5.dp)
+                                    MarksCard(it.details?.classParticipationScore ?: "",
+                                        it.details?.classParticipationTotal ?: "", onClick = {})
+                                }
                             }
-                        }
 
-                        AddHeight(30.dp)
+                            AddHeight(30.dp)
 
-                        selectedCourse.value?.let {
-                            if (it.details.projectScore == "?") {
-                                MarksCard(it.details.projectScore, it.details.projectTotal)
+                            selectedCourse.value?.let {
+                                if (it.details?.projectScore != "?") {
+                                    Text("Project", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                                    AddHeight(5.dp)
+                                    MarksCard(it.details?.projectScore ?: "",
+                                        it.details?.projectTotal ?: "", onClick = {})
+                                }
                             }
-                        }
 
-                        AddHeight(30.dp)
+                            AddHeight(30.dp)
 
-                        selectedCourse.value?.let {
-                            if (it.details.finalExamScore == "?") {
-                                MarksCard(it.details.finalExamScore, it.details.finalExamTotal)
+                            selectedCourse.value?.let {
+                                if (it.details?.finalExam?.examScore != "?") {
+                                    Text("Final Exams", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                                    AddHeight(5.dp)
+                                    if (it.details != null) {
+                                        MarksCard(
+                                            (
+                                                    (it.details.finalExam.examScore.toDouble() / it.details.finalExam.examTotal.toDouble())
+                                                            * it.details.finalExam.weightage.toDouble()).toString(),
+                                            it.details.finalExam.weightage,
+                                            onClick = {}
+                                        )
+                                    }
+                                }
+                            }
+
+                            AddHeight(30.dp)
+                            selectedCourse.value?.let {
+                                if (it.savePoints.isNotEmpty()) {
+                                    Text("Progress Throughout the course", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                                    val yPoints = it.savePoints
+                                    Log.d("savePoints Check", "$yPoints")
+                                    val pointsData: List<Point> = yPoints.mapIndexed { index, y ->
+                                        Point((index + 1).toFloat(), y.toFloat())
+                                    }
+                                    Log.d("savePoints Check", "$pointsData")
+                                    val configuration = LocalConfiguration.current
+                                    val screenWidthDp = configuration.screenWidthDp.dp
+                                    val numberOfSteps = (pointsData.size - 1).coerceAtLeast(1) // avoid divide-by-zero
+
+                                    val stepSize = with(LocalDensity.current) {
+                                        (screenWidthDp / numberOfSteps)
+                                    }
+                                    val xAxisData = AxisData.Builder()
+                                        .axisStepSize(stepSize)
+                                        .backgroundColor(Color.Transparent)
+                                        .steps(pointsData.size - 1)
+                                        .labelData { i -> i.toString() }
+                                        .labelAndAxisLinePadding(15.dp)
+                                        .build()
+
+                                    val steps = 10
+                                    val yAxisData = AxisData.Builder()
+                                        .steps(steps)
+                                        .backgroundColor(Color.Transparent)
+                                        .labelAndAxisLinePadding(20.dp)
+                                        .labelData { i ->
+                                            val yScale = 100 / steps
+                                            (i * yScale).toString()
+                                        }.build()
+                                    val lineChartData = LineChartData(
+                                        linePlotData = LinePlotData(
+                                            lines = listOf(
+                                                Line(
+                                                    dataPoints = pointsData,
+                                                    LineStyle(),
+                                                    IntersectionPoint(),
+                                                    SelectionHighlightPoint(),
+                                                    ShadowUnderLine(),
+                                                    SelectionHighlightPopUp()
+                                                )
+                                            ),
+                                        ),
+                                        xAxisData = xAxisData,
+                                        yAxisData = yAxisData,
+                                        gridLines = GridLines(),
+                                        backgroundColor = Color.Transparent
+                                    )
+                                    LineChart(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(300.dp),
+                                        lineChartData = lineChartData
+                                    )
+                                }
                             }
                         }
                     }

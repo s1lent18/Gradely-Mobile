@@ -5,18 +5,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Details(
     val assignments: List<Assignment>,
-    val attendance: List<Attendance>,
     val classParticipationScore: String,
     val classParticipationTotal: String,
     val courseCode: String,
-    val finalExamScore: String,
-    val finalExamTotal: String,
-    val mid1Score: String,
-    val mid1Total: String,
-    val mid2Score: String,
-    val mid2Total: String,
+    val mid1 : Exam,
+    val mid2 : Exam,
+    val finalExam : Exam,
     val name: String,
     val projectScore: String,
     val projectTotal: String,
-    val quizzes: List<Quiz>
+    val quizzes: List<Quiz>,
 )

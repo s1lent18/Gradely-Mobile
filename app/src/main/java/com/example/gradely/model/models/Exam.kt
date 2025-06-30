@@ -3,8 +3,9 @@ package com.example.gradely.model.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Quiz(
+data class Exam(
+    val examScore : String,
+    val examTotal : String,
     val weightage : String,
-    val quizScore : String,
-    val quizTotal : String
+    val breakDowns: List<BreakDowns>
 )

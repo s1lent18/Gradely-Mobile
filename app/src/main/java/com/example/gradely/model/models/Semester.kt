@@ -4,8 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Semester(
-    val courses: List<Course> = emptyList(),
-    val gpa: List<Double> = emptyList(),
-    val number: Int = 0,
-    val sections: List<String> = emptyList()
+    val courses: List<Course>,
+    val number: Int,
+    val name: String,
+    val creditsRegistered: Int,
+    val creditsEarned: Int
 )

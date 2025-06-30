@@ -112,6 +112,7 @@ fun SideBarItem(
 
     Row(
         modifier = Modifier
+            .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,

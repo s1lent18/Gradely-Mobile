@@ -20,28 +20,10 @@ class StudentTokenViewModel @Inject constructor(
     private val userPref: UserPref
 ) : ViewModel() {
 
-    init {
-        checkSession()
-        startAutoLogoutTimer()
-    }
-
     private val sessionDurationMillis = TimeUnit.MINUTES.toMillis(15)
 
     private val _session = MutableStateFlow(false)
     val session: StateFlow<Boolean> = _session
-
-    private fun checkSession() {
-        viewModelScope.launch {
-            val expired = isSessionExpired()
-            _session.value = !expired
-            if (expired) logout()
-        }
-    }
-
-    private suspend fun isSessionExpired(): Boolean {
-        val loginTimestamp = userPref.getTimeStamp().first().toLongOrNull() ?: return true
-        return (System.currentTimeMillis() - loginTimestamp) > sessionDurationMillis
-    }
 
     val studentData = userPref.getStudentData().stateIn(
         scope = viewModelScope,
@@ -56,7 +38,21 @@ class StudentTokenViewModel @Inject constructor(
     )
 
     init {
+        checkSession()
         startAutoLogoutTimer()
+    }
+
+    private fun checkSession() {
+        viewModelScope.launch {
+            val expired = isSessionExpired()
+            _session.value = !expired
+            if (expired) logout()
+        }
+    }
+
+    private suspend fun isSessionExpired(): Boolean {
+        val loginTimestamp = userPref.getTimeStamp().first().toLongOrNull() ?: return true
+        return (System.currentTimeMillis() - loginTimestamp) > sessionDurationMillis
     }
 
     fun saveTimeStamp(timeStamp: String) {
@@ -78,17 +74,14 @@ class StudentTokenViewModel @Inject constructor(
         }
     }
 
-    fun saveUserData(
-        studentData: StudentData,
-        timeStamp: String,
-    ) {
+    fun saveUserData(studentData: StudentData, timeStamp: String) {
         saveStudentData(studentData)
         saveTimeStamp(timeStamp)
     }
 
     private fun startAutoLogoutTimer() {
         viewModelScope.launch {
-            delay(900000)
+            delay(sessionDurationMillis)
             logout()
         }
     }

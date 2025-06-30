@@ -30,6 +30,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -70,6 +71,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
+import com.example.gradely.model.dataRequests.StudentRegistrationPart
 import com.example.gradely.model.dataRequests.StudentRegistrationRequest
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
@@ -90,7 +92,15 @@ fun StudentRegistration(
     val (semester, courseLimit) = getCurrentSemesterInfo()
     val color = if (isSystemInDarkTheme()) buttonDark else buttonLight
     var registeredCredits by remember { mutableIntStateOf(0) }
-    val registrationRequest = remember { mutableStateListOf<StudentRegistrationRequest>() }
+    val registrationPart = remember { mutableStateListOf<StudentRegistrationPart>() }
+    val registrationRequest = remember {
+        mutableStateOf(
+            StudentRegistrationRequest(
+                semester = semester,
+                parts = registrationPart
+            )
+        )
+    }
 
     LaunchedEffect(studentData?.studentId) {
         studentData?.let {
@@ -332,7 +342,10 @@ fun StudentRegistration(
                                             unfocusedLabelColor = Color.Gray,
                                             focusedLabelColor = Color.Gray
                                         ),
-                                        modifier = Modifier.menuAnchor(),
+                                        modifier = Modifier.menuAnchor(
+                                            type = ExposedDropdownMenuAnchorType.PrimaryEditable,
+                                            enabled = true
+                                        ),
                                         textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp)
                                     )
 
@@ -383,7 +396,10 @@ fun StudentRegistration(
                                             unfocusedLabelColor = Color.Gray,
                                             focusedLabelColor = Color.Gray
                                         ),
-                                        modifier = Modifier.menuAnchor(),
+                                        modifier = Modifier.menuAnchor(
+                                            type = ExposedDropdownMenuAnchorType.PrimaryEditable,
+                                            enabled = true
+                                        ),
                                         textStyle = TextStyle(fontFamily = Lexend, fontSize = 10.sp)
                                     )
 
@@ -412,11 +428,13 @@ fun StudentRegistration(
                                     } else {
                                         course?.creditHours?.let { registeredCredits += it }
                                         course?.courseId?.let {
-                                            registrationRequest.add(StudentRegistrationRequest(
-                                                courseId = it,
-                                                sectionId = selectedSection.value,
-                                                teacherId = selectedTeacher.value
-                                            ))
+                                            registrationPart.add(
+                                                StudentRegistrationPart(
+                                                    courseId = it,
+                                                    sectionId = selectedSection.value,
+                                                    teacherId = selectedTeacher.value
+                                                )
+                                            )
                                         }
                                     }
                                 },

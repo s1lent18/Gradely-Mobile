@@ -1,5 +1,5 @@
 package com.example.gradely.model.models
 
 data class GetSemesters(
-    val semesters: List<SemesterX>
+    val semesters: List<Semester>
 )
