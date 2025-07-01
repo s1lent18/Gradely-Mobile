@@ -336,7 +336,7 @@ fun StudentAttendance(
                     .fillMaxSize()
                     .padding(values)
             ) {
-                val (dropDown, lazyRow, tell, lazyColumn) = createRefs()
+                val (dropDown, lazyRow, lazyColumn) = createRefs()
 
                 if (attendance == null) {
                     Box (
