@@ -10,4 +10,5 @@ sealed class Screens(val route: String) {
     data object TeacherMarks: Screens("teacherMarksScreen")
     data object StudentRegistration: Screens("studentRegistrationScreen")
     data object StudentTranscript: Screens("studentTranscriptScreen")
+    data object StudentAttendance: Screens("studentAttendanceScreen")
 }

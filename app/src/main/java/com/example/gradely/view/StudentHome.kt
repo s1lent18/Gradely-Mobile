@@ -100,7 +100,7 @@ fun StudentHome(
                         text = "Attendance",
                         isSelected = false,
                         onClick = {
-
+                            navController.navigate(Screens.StudentAttendance.route)
                         }
                     )
                     AddHeight(8.dp)
