@@ -1,5 +1,6 @@
 package com.example.gradely.view
 
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -123,19 +124,21 @@ fun ProgressBar(progress: Float) {
 
 @Composable
 fun Progress(limit: Float) {
+    Log.d("Limit", "$limit")
     var progress by remember { mutableFloatStateOf(0f) }
-    LaunchedEffect(Unit) {
-        if (progress < limit) {
+    LaunchedEffect(limit) {
+        while (progress < limit) {
             delay(5)
-            progress += 0.002f
+            progress += 0.005f // increase rate slightly for better animation speed
         }
+        progress = limit // snap to limit to avoid overshooting due to float addition
     }
     Column(
         modifier = Modifier.padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Attendance Percentage ${(limit / 1f) * 100}")
+        Text("Attendance Percentage ${(limit / 1f) * 100}", fontFamily = Lexend, fontSize = 10.sp)
         ProgressBar(progress = progress)
         AddHeight(10.dp)
     }
@@ -145,7 +148,9 @@ fun Progress(limit: Float) {
 fun AttendanceCard(courseAttendance: CourseAttendance) {
 
     val presents = courseAttendance.attendances.count { it.status == "Present" }
-    val total = courseAttendance.attendances.count { it.status != "Present" }
+    val total = courseAttendance.attendances.count()
+
+    Log.d("Present - total", "$presents, $total")
 
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -162,6 +167,7 @@ fun AttendanceCard(courseAttendance: CourseAttendance) {
             Text("${courseAttendance.courseCode} - ${courseAttendance.courseName} (${courseAttendance.sectionName})", fontFamily = Lexend, fontSize = 10.sp)
             AddHeight(10.dp)
             Progress(limit = (presents / total).toFloat())
+            AddHeight(20.dp)
         }
     }
 }
