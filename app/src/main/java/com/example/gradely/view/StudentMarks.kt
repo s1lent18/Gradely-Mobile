@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HowToVote
 import androidx.compose.material.icons.filled.SupervisorAccount
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -34,6 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -69,6 +72,7 @@ import com.example.gradely.viewmodel.viewmodels.StudentMarksViewModel
 import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -85,6 +89,7 @@ import co.yml.charts.ui.linechart.model.SelectionHighlightPoint
 import co.yml.charts.ui.linechart.model.SelectionHighlightPopUp
 import co.yml.charts.ui.linechart.model.ShadowUnderLine
 import com.example.gradely.model.dataRequests.StudentAllResultRequest
+import com.example.gradely.model.models.BreakDowns
 import com.example.gradely.model.models.Course
 
 @Composable
@@ -112,7 +117,11 @@ fun CourseSelection(course: Course, onClick: () -> Unit) {
 }
 
 @Composable
-fun MarksCard(score: String, total: String, onClick: () -> Unit) {
+fun MarksCard(
+    score: String,
+    total: String,
+    onClick: () -> Unit
+) {
     ElevatedCard (
         onClick = onClick,
         modifier = Modifier
@@ -141,8 +150,119 @@ fun MarksCard(score: String, total: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun MarksListCard(score: List<String>, total: List<String>) {
+fun MarksCardWithDialog(score: String, total: String, breakDowns : List<BreakDowns>) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    MarksCard(
+        score = score,
+        total = total,
+        onClick = { showDialog = true }
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("Score Details", fontWeight = FontWeight.Bold, fontFamily = Lexend)
+                }
+            },
+            confirmButton = {},
+            text = {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
+                        AddHeight(10.dp)
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(fraction = 0.8f),
+                            color = Color.LightGray
+                        )
+                        AddHeight(10.dp)
+                    }
+
+                    item {
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Text(score, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                            VerticalDivider(
+                                color = Color.LightGray
+                            )
+                            Text(total, fontFamily = Lexend, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    item {
+                        AddHeight(10.dp)
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(fraction = 0.8f),
+                            color = Color.LightGray
+                        )
+                        AddHeight(10.dp)
+                    }
+
+                    item {
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Text("Question", fontSize = 12.sp, fontFamily = Lexend)
+                            Text("Score", fontSize = 12.sp, fontFamily = Lexend)
+                            Text("Total", fontSize = 12.sp, fontFamily = Lexend)
+                            Text("Weightage", fontSize = 12.sp, fontFamily = Lexend)
+                        }
+                        AddHeight(10.dp)
+                    }
+
+                    itemsIndexed(breakDowns) { index, breakDown ->
+                        Row (
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Text("${index + 1}", fontSize = 12.sp, fontFamily = Lexend)
+                            Text(breakDown.questionScore, fontSize = 12.sp, fontFamily = Lexend)
+                            Text(breakDown.questionTotal, fontSize = 12.sp, fontFamily = Lexend)
+                            Text(breakDown.questionWeightage, fontSize = 12.sp, fontFamily = Lexend)
+                        }
+                        AddHeight(6.dp)
+                    }
+
+                    item {
+                        AddHeight(4.dp)
+                        HorizontalDivider(
+                            modifier = Modifier.fillMaxWidth(fraction = 0.8f),
+                            color = Color.LightGray
+                        )
+                        AddHeight(10.dp)
+                    }
+                }
+            },
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+        )
+    }
+}
+
+
+@Composable
+fun MarksListCard(
+    score: List<String>,
+    total: List<String>,
+    onClick: () -> Unit
+) {
     ElevatedCard (
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(150.dp),
@@ -260,7 +380,9 @@ fun StudentMarks(
                         icon = Icons.Default.HowToVote,
                         text = "Course Registration",
                         isSelected = true,
-                        onClick = {}
+                        onClick = {
+                            navController.navigate(Screens.StudentRegistration.route)
+                        }
                     )
                     AddHeight(8.dp)
                     SideBarItem(
@@ -268,7 +390,7 @@ fun StudentMarks(
                         text = "Attendance",
                         isSelected = false,
                         onClick = {
-
+                            navController.navigate(Screens.StudentAttendance.route)
                         }
                     )
                     AddHeight(8.dp)
@@ -276,9 +398,7 @@ fun StudentMarks(
                         icon = Icons.Default.CheckCircleOutline,
                         text = "Marks",
                         isSelected = false,
-                        onClick = {
-                            navController.navigate(Screens.StudentMarks.route)
-                        }
+                        onClick = {}
                     )
                     AddHeight(8.dp)
                     SideBarItem(
@@ -483,14 +603,17 @@ fun StudentMarks(
                                         scores.add(assignment.assignmentScore)
                                         totals.add(assignment.assignmentTotal)
                                     }
-                                    MarksListCard(score = scores, total = totals)
+                                    MarksListCard(
+                                        score = scores,
+                                        total = totals,
+                                        onClick = {}
+                                    )
                                 }
                             }
 
-                            AddHeight(30.dp)
-
                             selectedCourse.value?.let {
                                 if (it.details?.quizzes?.isNotEmpty() ?: false) {
+                                    AddHeight(30.dp)
                                     Text("Quiz", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
                                     AddHeight(5.dp)
                                     val scores = mutableListOf<String>()
@@ -499,18 +622,21 @@ fun StudentMarks(
                                         scores.add(assignment.quizScore)
                                         totals.add(assignment.quizTotal)
                                     }
-                                    MarksListCard(score = scores, total = totals)
+                                    MarksListCard(
+                                        score = scores,
+                                        total = totals,
+                                        onClick = {}
+                                    )
                                 }
                             }
 
-                            AddHeight(30.dp)
-
                             selectedCourse.value?.let {
                                 if (it.details?.mid1?.examScore != "?") {
+                                    AddHeight(30.dp)
                                     Text("Mid-1", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
                                     AddHeight(5.dp)
                                     if (it.details != null) {
-                                        MarksCard(
+                                        MarksCardWithDialog(
                                             (
                                                     (it.details.mid1.examScore.toDouble()
                                                         .div(
@@ -519,34 +645,32 @@ fun StudentMarks(
                                                             it.details.mid1.weightage.toDouble()
                                                         )).toString(),
                                             it.details.mid1.weightage,
-                                            onClick = {}
+                                            breakDowns = it.details.mid1.breakDowns
                                         )
                                     }
                                 }
                             }
 
-                            AddHeight(30.dp)
-
                             selectedCourse.value?.let {
                                 if (it.details?.mid2?.examScore != "?") {
+                                    AddHeight(30.dp)
                                     Text("Mid-2", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
                                     AddHeight(5.dp)
                                     if (it.details != null) {
-                                        MarksCard(
+                                        MarksCardWithDialog(
                                             (
                                                     (it.details.mid2.examScore.toDouble() / it.details.mid2.examTotal.toDouble())
                                                             * it.details.mid2.weightage.toDouble()).toString(),
                                             it.details.mid2.weightage,
-                                            onClick = {}
+                                            breakDowns = it.details.mid2.breakDowns
                                         )
                                     }
                                 }
                             }
 
-                            AddHeight(30.dp)
-
                             selectedCourse.value?.let {
                                 if (it.details?.classParticipationScore != "?") {
+                                    AddHeight(30.dp)
                                     Text("Class Participation", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
                                     AddHeight(5.dp)
                                     MarksCard(it.details?.classParticipationScore ?: "",
@@ -554,10 +678,9 @@ fun StudentMarks(
                                 }
                             }
 
-                            AddHeight(30.dp)
-
                             selectedCourse.value?.let {
                                 if (it.details?.projectScore != "?") {
+                                    AddHeight(30.dp)
                                     Text("Project", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
                                     AddHeight(5.dp)
                                     MarksCard(it.details?.projectScore ?: "",
@@ -565,19 +688,18 @@ fun StudentMarks(
                                 }
                             }
 
-                            AddHeight(30.dp)
-
                             selectedCourse.value?.let {
                                 if (it.details?.finalExam?.examScore != "?") {
+                                    AddHeight(30.dp)
                                     Text("Final Exams", fontSize = 14.sp, fontFamily = Lexend, fontWeight = FontWeight.Bold)
                                     AddHeight(5.dp)
                                     if (it.details != null) {
-                                        MarksCard(
+                                        MarksCardWithDialog(
                                             (
                                                     (it.details.finalExam.examScore.toDouble() / it.details.finalExam.examTotal.toDouble())
                                                             * it.details.finalExam.weightage.toDouble()).toString(),
                                             it.details.finalExam.weightage,
-                                            onClick = {}
+                                            breakDowns = it.details.finalExam.breakDowns
                                         )
                                     }
                                 }
@@ -595,7 +717,7 @@ fun StudentMarks(
                                     Log.d("savePoints Check", "$pointsData")
                                     val configuration = LocalConfiguration.current
                                     val screenWidthDp = configuration.screenWidthDp.dp
-                                    val numberOfSteps = (pointsData.size - 1).coerceAtLeast(1) // avoid divide-by-zero
+                                    val numberOfSteps = (pointsData.size - 1).coerceAtLeast(1)
 
                                     val stepSize = with(LocalDensity.current) {
                                         (screenWidthDp / numberOfSteps)

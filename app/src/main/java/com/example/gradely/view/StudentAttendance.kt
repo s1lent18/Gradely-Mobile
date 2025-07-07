@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
@@ -129,9 +130,9 @@ fun Progress(limit: Float) {
     LaunchedEffect(limit) {
         while (progress < limit) {
             delay(5)
-            progress += 0.005f // increase rate slightly for better animation speed
+            progress += 0.005f
         }
-        progress = limit // snap to limit to avoid overshooting due to float addition
+        progress = limit
     }
     Column(
         modifier = Modifier.padding(8.dp),
@@ -454,9 +455,9 @@ fun StudentAttendance(
                         }
 
                         if (selectedCourse.value != null) {
-                            items(selectedCourse.value!!.attendances) { attendance ->
+                            itemsIndexed(selectedCourse.value!!.attendances) { idx, attendance ->
                                 Attendances(
-                                    lectureNo = "",
+                                    lectureNo = "${idx + 1}",
                                     date = attendance.date,
                                     duration = "1",
                                     presence = if (attendance.status == "Present") "P" else if (attendance.status == "Absent") "A" else "L"
