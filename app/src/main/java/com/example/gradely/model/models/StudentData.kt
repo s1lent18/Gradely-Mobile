@@ -23,5 +23,6 @@ data class StudentData(
     val studentName: String = "",
     val token: String = "",
     val status: String = "",
-    val warningCount: Int = 0
+    val warningCount: Int = 0,
+    val fcmToken : String = ""
 )

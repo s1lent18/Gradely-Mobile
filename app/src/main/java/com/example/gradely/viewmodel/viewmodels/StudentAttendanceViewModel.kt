@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gradely.model.interfaces.StudentAttendanceAPI
 import com.example.gradely.model.models.GetAttendances
+import com.example.gradely.model.models.StudentFCMTokenResponse
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

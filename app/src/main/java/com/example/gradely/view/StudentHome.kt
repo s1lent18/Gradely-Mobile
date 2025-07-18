@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HowToVote
 import androidx.compose.material.icons.filled.SupervisorAccount
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ElevatedCard
@@ -26,41 +27,108 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.gradely.model.dataRequests.StudentFCMToken
 import com.example.gradely.ui.theme.Lexend
 import com.example.gradely.ui.theme.buttonDark
 import com.example.gradely.ui.theme.buttonLight
 import com.example.gradely.viewmodel.navigation.Screens
-import com.example.gradely.viewmodel.viewmodels.StudentRegistrationsViewModel
+import com.example.gradely.viewmodel.viewmodels.StudentAuthViewModel
 import com.example.gradely.viewmodel.viewmodels.StudentTokenViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentHome(
     navController: NavController,
+    studentAuthViewModel: StudentAuthViewModel = hiltViewModel(),
     studentTokenViewModel: StudentTokenViewModel = hiltViewModel(),
-    studentRegistrationsViewModel: StudentRegistrationsViewModel = hiltViewModel()
 ) {
 
     val studentData = studentTokenViewModel.studentData.collectAsState().value
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val scope = rememberCoroutineScope()
+    var popup by remember { mutableStateOf(false) }
+
+    LaunchedEffect(studentData) {
+        Log.d("Check Alert", "$studentData")
+        studentData?.let {
+            if (it.fcmToken.isEmpty()) {
+                popup = true
+            }
+        }
+    }
+
+    if (popup) {
+        AlertDialog(
+            onDismissRequest = { popup = false },
+            title = {
+                Text(
+                    text = "Device Info",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Lexend
+                )
+            },
+            text = {
+                Text(
+                    "Allow us to save the device info for notifications",
+                    fontSize = 15.sp,
+                    fontFamily = Lexend
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (studentData != null) {
+                        Firebase.messaging.token.addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val fcmToken = task.result
+                                val studentFCMToken = StudentFCMToken(token = fcmToken)
+                                studentAuthViewModel.sendStudentFCMToken(
+                                    studentId = studentData.studentId,
+                                    token = "Bearer " + studentData.token,
+                                    studentFCMToken = studentFCMToken
+                                )
+                            }
+                        }
+                    }
+                    popup = false
+                }) {
+                    Text("Allow", fontFamily = Lexend)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { popup = false }) {
+                    Text("Cancel", fontFamily = Lexend)
+                }
+            }
+        )
+
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -175,11 +243,13 @@ fun StudentHome(
                 val (info, scroll) = createRefs()
 
                 Row (
-                    modifier = Modifier.constrainAs(info) {
-                        top.linkTo(parent.top, margin = 50.dp)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }.fillMaxWidth(fraction = 0.9f),
+                    modifier = Modifier
+                        .constrainAs(info) {
+                            top.linkTo(parent.top, margin = 50.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        }
+                        .fillMaxWidth(fraction = 0.9f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
@@ -211,7 +281,9 @@ fun StudentHome(
                             )
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxSize().padding(20.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(20.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
                                 Text("Email: ${studentData?.assignedEmail}", fontSize = 12.sp, fontFamily = Lexend)
@@ -237,7 +309,9 @@ fun StudentHome(
                             )
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxSize().padding(20.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(20.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
                                 Text("Name: ${studentData?.studentName}", fontSize = 12.sp, fontFamily = Lexend)
@@ -275,7 +349,9 @@ fun StudentHome(
                             )
                         ) {
                             Column(
-                                modifier = Modifier.fillMaxSize().padding(20.dp),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(20.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
                                 Text("Course Registration: 02/06/2025-05/06/2025", fontSize = 12.sp, fontFamily = Lexend)
